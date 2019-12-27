@@ -279,7 +279,7 @@ void write_data_to_file(FILE *fw){
 
     // if(CTRL.timebase>20)
     {
-        if(++j == 10)
+        if(++j == 1)
         {
             j=0;
             #if MACHINE_TYPE == INDUCTION_MACHINE
