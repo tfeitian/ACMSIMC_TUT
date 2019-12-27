@@ -51,16 +51,22 @@ void Machine_init()
     ACM.Tload = 0.0;
     ACM.Tem = 0.0;
 
-    ACM.R = 0.45;
-    ACM.Ld = 4.15 * 1e-3;
-    ACM.Lq = 16.74 * 1e-3;
-    ACM.KE = 0.504; // Vs/rad
+    // double motorData[4] = {10.3, 87.5, 87.5, 125}; //efan
+    // double motorData[5] = {0.45, 4.15, 16.74, 0.504 / 13.5 * 2 * 1000, 2}; //Origin motor data
+    double motorData[5] = {7.6, 75, 75, 150, 5}; //138mm
+    ACM.R = motorData[0];
+    ACM.Ld = motorData[1] * 1e-3;
+    ACM.Lq = motorData[2] * 1e-3;
+    ACM.Bemf = motorData[3];
+    //0.3375; // = backemf_rms@1000rpm/1000/pole pairs*13.5
+    //0.504; // Vs/rad
     ACM.L0 = 0.5 * (ACM.Ld + ACM.Lq);
     ACM.L1 = 0.5 * (ACM.Ld - ACM.Lq);
 
     ACM.Js = 0.06; // Awaya92 using ACM.omg
-    ACM.npp = 2;
+    ACM.npp = motorData[4];
     ACM.mu_m = ACM.npp / ACM.Js;
+    ACM.KE = 13.5 * ACM.Bemf / 1000.0 / ACM.npp;
 
     ACM.Ts = MACHINE_TS;
 
