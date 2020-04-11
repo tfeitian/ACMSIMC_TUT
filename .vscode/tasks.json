@@ -1,7 +1,6 @@
 {
   "version": "2.0.0",
-  "tasks": [
-    {
+  "tasks": [{
       "label": "buildexe",
       "command": "C:/MinGW/bin/gcc.exe",
       "args": [
@@ -24,8 +23,18 @@
       }
     },
     {
+      "label": "runscript",
+      "command": "C:\\Users\\610099764\\AppData\\Local\\Programs\\Python\\Python36-32\\python.exe",
+      "args": [
+        "./ACMPlot.py"
+      ],
+      "options": {
+        "cwd": "${workspaceRoot}"
+      }
+    },
+    {
       "label": "Build and Run",
-      "dependsOn": ["buildexe", "run"],
+      "dependsOn": ["buildexe", "run", "runscript"],
       "dependsOrder": "sequence",
       "group": {
         "kind": "build",

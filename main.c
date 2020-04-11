@@ -290,7 +290,7 @@ int main()
     fclose(fw);
 
     /* Fade out */
-    system("python ./ACMPlot.py");
+    // system("python ./ACMPlot.py");
     // getch();
     // system("pause");
     // system("exit");
@@ -335,7 +335,7 @@ void write_data_to_file(FILE *fw)
     {
         bool_animate_on = true;
         printf("Start ACMAnimate\n");
-        system("start python ./ACMAnimate.py");
+        // system("start python ./ACMAnimate.py");
     }
 }
 
