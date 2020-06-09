@@ -8,6 +8,7 @@
         "main.c",
         "observer.c",
         "controller.c",
+        "smo.c",
         "-o",
         "${workspaceRoot}\\main.exe"
       ],

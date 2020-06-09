@@ -108,7 +108,8 @@ plot_it(ax_list[1], r'$\omega$ [rpm]', O([
                                              (r'0',   ll[2]),  
                                              ]))
 plot_it(ax_list[2], r'$\theta_{rm} $ [rad]', O([
-                                             (r'1',   ll[3]),  
+                                             (r'1',   ll[3]), 
+                                             (r'2',   ll[10]) 
                                              ]))
 plot_it(ax_list[3], r'voltage [V]', O([
                                              (r'0',   ll[4]),  

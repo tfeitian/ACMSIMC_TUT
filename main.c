@@ -1,4 +1,5 @@
 #include "ACMSim.h"
+#include "smo.h"
 
 #if MACHINE_TYPE == INDUCTION_MACHINE
 struct InductionMachineSimulated ACM;
@@ -232,6 +233,7 @@ int main()
     CTRL_init();
     acm_init();
     ob_init();
+    smo_vInit(ACM.R, (ACM.Ld + ACM.Lq) / 2.0);
 
     FILE *fw;
     fw = fopen("algorithm.dat", "w");
@@ -278,6 +280,8 @@ int main()
 
             observation();
 
+            ob.theta = smo_vCalc(IS_C(0), IS_C(1), US_C(0), US_C(1), sm.omg);
+
             write_data_to_file(fw);
 
             control(ACM.rpm_cmd, 0);
@@ -304,7 +308,7 @@ void write_header_to_file(FILE *fw)
     fprintf(fw, "x0, x1, x2, x3, rpm, uMs_cmd, uTs_cmd, iMs_cmd, iMs, iTs_cmd, iTs, psi_mu_al, tajima_rpm\n");
 
 #elif MACHINE_TYPE == SYNCHRONOUS_MACHINE
-    fprintf(fw, "x0,x1,x2,x3, uMs_cmd, uTs_cmd, iMs_cmd, iMs, iTs_cmd, iTs\n");
+    fprintf(fw, "x0,x1,x2,x3, uMs_cmd, uTs_cmd, iMs_cmd, iMs, iTs_cmd, iTs, obtheta\n");
 #endif
 }
 void write_data_to_file(FILE *fw)
@@ -324,9 +328,9 @@ void write_data_to_file(FILE *fw)
                     CTRL.uMs_cmd, CTRL.uTs_cmd, CTRL.iMs_cmd, CTRL.iMs, CTRL.iTs_cmd, CTRL.iTs,
                     ob.psi_mu_al, ob.tajima.omg * RAD_PER_SEC_2_RPM);
 #elif MACHINE_TYPE == SYNCHRONOUS_MACHINE
-            fprintf(fw, "%g,%g,%g,%g,%g,%g,%g,%g,%g,%g\n",
+            fprintf(fw, "%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g\n",
                     ACM.x[0], ACM.x[1], ACM.x[2], ACM.x[3],
-                    CTRL.uMs_cmd, CTRL.uTs_cmd, CTRL.iMs_cmd, CTRL.iMs, CTRL.iTs_cmd, CTRL.iTs);
+                    CTRL.uMs_cmd, CTRL.uTs_cmd, CTRL.iMs_cmd, CTRL.iMs, CTRL.iTs_cmd, CTRL.iTs, ob.theta);
 #endif
         }
     }
