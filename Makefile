@@ -8,7 +8,8 @@ src/observer.c \
 src/controller.c \
 src/smo.c \
 src/log.c \
-src/socket.c 
+src/socket.c \
+src/cJSON.c
 
 CC = $(PREFIX)gcc
 

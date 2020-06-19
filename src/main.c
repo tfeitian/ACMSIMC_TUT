@@ -336,6 +336,7 @@ void write_data_to_file(FILE *fw)
 #endif
         }
     }
+    socket_vSend("ob.theta", (float)ob.theta);
 
     if (bool_animate_on == false)
     {
