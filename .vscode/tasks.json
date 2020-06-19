@@ -1,24 +1,20 @@
 {
   "version": "2.0.0",
   "tasks": [{
-      "label": "buildexe",
-      "command": "C:/MinGW/bin/gcc.exe",
-      "args": [
-        "-g",
-        "main.c",
-        "observer.c",
-        "controller.c",
-        "smo.c",
-        "-o",
-        "${workspaceRoot}\\main.exe"
-      ],
+      "label": "build exe",
+      "command": "make",
       "options": {
         "cwd": "${workspaceRoot}"
-      }
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": ["$gcc"]
     },
     {
       "label": "run",
-      "command": "${workspaceRoot}\\main.exe",
+      "command": "${workspaceRoot}\\build\\main.exe",
       "options": {
         "cwd": "${workspaceRoot}"
       }
@@ -27,7 +23,7 @@
       "label": "runscript",
       "command": "C:\\Users\\610099764\\AppData\\Local\\Programs\\Python\\Python36-32\\python.exe",
       "args": [
-        "./ACMPlot.py"
+        "./scripts/ACMPlot.py"
       ],
       "options": {
         "cwd": "${workspaceRoot}"
@@ -40,7 +36,8 @@
       "group": {
         "kind": "build",
         "isDefault": true
-      }
+      },
+      "problemMatcher": ["$gcc"]
     }
   ]
 }

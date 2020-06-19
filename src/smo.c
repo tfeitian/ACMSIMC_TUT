@@ -33,7 +33,7 @@ void smo_vInit(float fRs, float fLs)
 
     tmpx1 = 20.0 * (float)MOTOR_POLES * 2 / 60 * T_SAMPLE;
 
-    fMaxCurrentError = 3.3f; // TODO: Need to be transfered into float
+    fMaxCurrentError = 105.3f; // !This value is the key parameter for different load
 }
 
 static float fEstIa, fEstIb, fZa, fZb, fEa, fEb, fOmega, fOmegFiltered, fEaFiltered, fEbFiltered;
