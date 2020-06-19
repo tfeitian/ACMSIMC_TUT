@@ -334,9 +334,20 @@ void write_data_to_file(FILE *fw)
                     ACM.x[0], ACM.x[1], ACM.x[2], ACM.x[3],
                     CTRL.uMs_cmd, CTRL.uTs_cmd, CTRL.iMs_cmd, CTRL.iMs, CTRL.iTs_cmd, CTRL.iTs, ob.theta);
 #endif
+            dbglog("ACM.x[0]", ACM.x[0]);
+            dbglog("ACM.x[1]", ACM.x[1]);
+            dbglog("ACM.x[2]", ACM.x[2]);
+            dbglog("ACM.x[3]", ACM.x[3]);
+            dbglog("CTRL.uMs_cmd", CTRL.uMs_cmd);
+            dbglog("CTRL.uTs_cmd", CTRL.uTs_cmd);
+            dbglog("CTRL.iMs_cmd", CTRL.iMs_cmd);
+            dbglog("CTRL.iMs", CTRL.iMs);
+            dbglog("CTRL.iTs_cmd", CTRL.iTs_cmd);
+            dbglog("CTRL.iTs", CTRL.iTs);
+            dbglog("ob.theta", ob.theta);
         }
     }
-    socket_vSend("ob.theta", (float)ob.theta);
+    socket_vSend();
 
     if (bool_animate_on == false)
     {

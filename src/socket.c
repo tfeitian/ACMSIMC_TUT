@@ -7,8 +7,7 @@
 static SOCKET sclient;
 struct sockaddr_in serAddr;
 
-void socket_vSend(char *name, float value);
-char *makeJson(char *name, float value);
+char *makeJson(void);
 
 int socket_vinit(void)
 {
@@ -29,16 +28,11 @@ int socket_vinit(void)
     serAddr.sin_family = AF_INET;
     serAddr.sin_port = htons(8888);
     serAddr.sin_addr.S_un.S_addr = inet_addr("127.0.0.1");
-    /*     if (connect(sclient, (struct sockaddr *)&serAddr, sizeof(serAddr)) == SOCKET_ERROR)
-    {
-        printf("connect error !");
-        closesocket(sclient);
-        return 0;
-    } */
 }
-void socket_vSend(char *name, float value)
+
+void socket_vSend(void)
 {
-    char *sendData = makeJson(name, value);
+    char *sendData = makeJson();
     sendto(sclient, sendData, strlen(sendData), 0, (struct sockaddr *)&serAddr, sizeof(serAddr));
     free(sendData);
     /*int ret = recv(sclient, recData, 255, 0);
@@ -62,34 +56,19 @@ int socket_vClose()
 //CJSON在内存中的存储方式是用链表进行存储的，所以在进行操作的时候，我们可见的部分全部是用指针进行操作的。
 #include <stdio.h>
 #include "cJSON.h"
+cJSON *pJsonRoot = NULL;
 
-char *makeJson(char *name, float value)
+void dbglog(char *name, float value)
 {
-    cJSON *pJsonRoot = NULL;
-    pJsonRoot = cJSON_CreateObject(); //新建JSON主项目：pJsonRoot
-    if (NULL == pJsonRoot)
+    if (pJsonRoot == NULL)
     {
-        //error happend here
-        return NULL;
+        pJsonRoot = cJSON_CreateObject(); //新建JSON主项目：pJsonRoot
     }
-    //add 字符串、数字和bool变量
-    // cJSON_AddStringToObject(pJsonRoot, "name", name);    //在主目录下添加一级目录hello并添加字符串hello world
     cJSON_AddNumberToObject(pJsonRoot, name, value); //在主目录下添加一级目录number并添加数字10010
+}
 
-    cJSON *pSubJson = NULL;
-    pSubJson = cJSON_CreateObject(); //在主目录JSON下创建二级目录：pSubJson
-    if (NULL == pSubJson)
-    {
-        // create object faild, exit
-        cJSON_Delete(pJsonRoot);
-        return NULL;
-    }
-    // pSubJson项目上添加字符串。
-    /*     cJSON_AddStringToObject(pSubJson, "subjsonobj", "a sub json string"); //在二级目录subjsonobj下添加字符串a sub json string
-    cJSON_AddItemToObject(pJsonRoot, "subobj", pSubJson);       */
-    //在主目录下添加一级目录subobj并添加二级目录pSubJson下的数据
-
-    //char * p = cJSON_Print(pJsonRoot);//将项目转换成字符串输出到指针p上
+char *makeJson(void)
+{
     char *p = cJSON_PrintUnformatted(pJsonRoot); //将项目压缩后(去除\t\n)转换成字符串输出到指针p上
     if (NULL == p)
     {
@@ -98,9 +77,7 @@ char *makeJson(char *name, float value)
         cJSON_Delete(pJsonRoot);
         return NULL;
     }
-    //free(p);
-
     cJSON_Delete(pJsonRoot); //删除项目
-
+    pJsonRoot = NULL;
     return p;
 }
