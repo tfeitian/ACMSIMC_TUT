@@ -6,6 +6,14 @@
 
 static SOCKET sclient;
 struct sockaddr_in serAddr;
+static int msgcnts = 0;
+//CJSON在内存中的存储方式是用链表进行存储的，所以在进行操作的时候，我们可见的部分全部是用指针进行操作的。
+#include <stdio.h>
+#include "cJSON.h"
+cJSON *pJsonRoot = NULL;
+
+cJSON *pJsonArry;
+int arryLen = 0;
 
 char *makeJson(void);
 
@@ -18,7 +26,7 @@ int socket_vinit(void)
         return 0;
     }
 
-    sclient = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    sclient = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (sclient == INVALID_SOCKET)
     {
         printf("invalid socket !");
@@ -28,13 +36,40 @@ int socket_vinit(void)
     serAddr.sin_family = AF_INET;
     serAddr.sin_port = htons(8888);
     serAddr.sin_addr.S_un.S_addr = inet_addr("127.0.0.1");
+
+    //定义要连接的服务器地址
+    if (connect(sclient, (SOCKADDR *)&serAddr, sizeof(serAddr)) == SOCKET_ERROR)
+    {
+        printf("客户端建立连接失败！\n");
+        closesocket(sclient);
+        WSACleanup();
+        return 0;
+    }
+    else
+        printf("客户端建立连接成功，准备发送数据！\n");
 }
 
 void socket_vSend(void)
 {
-    char *sendData = makeJson();
-    sendto(sclient, sendData, strlen(sendData), 0, (struct sockaddr *)&serAddr, sizeof(serAddr));
-    free(sendData);
+    /*     if (pJsonArry == NULL)
+    {
+        pJsonArry = cJSON_CreateArray();
+    }
+    cJSON_AddItemToArray(pJsonArry, pJsonRoot);
+    pJsonRoot = NULL; */
+    arryLen++;
+
+    // if (arryLen >= 20)
+    {
+        char *sendData = makeJson();
+        // sendto(sclient, sendData, strlen(sendData), 0, (struct sockaddr *)&serAddr, sizeof(serAddr));
+        send(sclient, sendData, strlen(sendData), 0);
+        free(sendData);
+        arryLen = 0;
+        // cJSON_Delete(pJsonArry);
+        msgcnts++;
+        printf("%d\n", msgcnts);
+    }
     /*int ret = recv(sclient, recData, 255, 0);
 		if (ret > 0)
 		{
@@ -52,11 +87,6 @@ int socket_vClose()
     WSACleanup();
     return 0;
 }
-
-//CJSON在内存中的存储方式是用链表进行存储的，所以在进行操作的时候，我们可见的部分全部是用指针进行操作的。
-#include <stdio.h>
-#include "cJSON.h"
-cJSON *pJsonRoot = NULL;
 
 void dbglog(char *name, float value)
 {
