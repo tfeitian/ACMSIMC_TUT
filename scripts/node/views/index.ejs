@@ -7,7 +7,7 @@
   </head>
   <body>
     <!-- 为 ECharts 准备一个具备大小（宽高）的 DOM -->
-    <div id="main" style="width: 1000px; height: 600px;"></div>
+    <div id="main" style="width: 1500px; height: 700px;"></div>
     <input id="xAxis" value="<%= xAxis%>" type="hidden" />
     <input id="series" value="<%= series%>" type="hidden" />
     <script type="text/javascript">
@@ -36,6 +36,11 @@
           smooth: false,
         });
       }
+      bb = [];
+      bb.push(aa[3]);
+      bb.push(aa[10]);
+      bb.push(aa[11]);
+      bb.push(aa[12]);
 
       option = {
         xAxis: {
@@ -58,7 +63,7 @@
             endValue: xAxis.length,
           },
         ],
-        series: aa,
+        series: bb,
       };
       myChart.setOption(option);
     </script>

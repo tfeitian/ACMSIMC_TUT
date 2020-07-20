@@ -52,8 +52,8 @@ var refresh = function () {
             xAxis = f(length / step);
             for (j = 0; j < table[1].length; j++) {
                 var row = [];
-                for (var i = 1; i < length; i += step) {
-                    row.push(table[i][j]);
+                for (var i = 1; i < length / step; i += 1) {
+                    row.push(table[i * step][j]);
                 }
                 series.push(row);
             }
