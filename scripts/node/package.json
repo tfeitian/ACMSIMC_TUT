@@ -1,0 +1,13 @@
+{
+  "name": "node",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "tangfei@outlook.com",
+  "license": "MIT",
+  "dependencies": {
+    "ejs": "^3.1.3",
+    "koa": "^2.13.0",
+    "koa-router": "^9.1.0",
+    "koa-views": "^6.3.0"
+  }
+}

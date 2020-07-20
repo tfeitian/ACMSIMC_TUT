@@ -1,5 +1,6 @@
 #include <math.h>
 #include "ACMSim.h"
+#include "tool.h"
 
 #define T_SAMPLE ((float)TS) //Sample time
 #define Fre_Max 200          // Motor max frequency
@@ -36,7 +37,7 @@ void smo_vInit(float fRs, float fLs)
     fMaxCurrentError = 105.3f; // !This value is the key parameter for different load
 }
 
-static float fEstIa, fEstIb, fZa, fZb, fEa, fEb, fOmega, fOmegFiltered, fEaFiltered, fEbFiltered;
+static float fEstIa = 0.0f, fEstIb = 0.0f, fZa = 0.0f, fZb = 0.0f, fEa = 0.0f, fEb = 0.0f, fOmega, fOmegFiltered, fEaFiltered, fEbFiltered;
 
 float smo_vCalc(float fIa, float fIb, float fUa, float fUb, float fOmega)
 {
@@ -81,6 +82,7 @@ float smo_vCalc(float fIa, float fIb, float fUa, float fUb, float fOmega)
     {
         fKslf = fKslfMin;
     }
+    float ftheta = atan2f(-fZa, fZb);
 
     fEa = fEa + (fKslf * (fZa - fEa));
     fEb = fEb + (fKslf * (fZb - fEb));
@@ -88,6 +90,10 @@ float smo_vCalc(float fIa, float fIb, float fUa, float fUb, float fOmega)
     fEaFiltered = fEaFiltered + fKslf * (fEa - fEaFiltered);
     fEbFiltered = fEbFiltered + fKslf * (fEb - fEbFiltered);
 
-    float ftheta = atan2f(-fEaFiltered, fEbFiltered);
+    float ftheta0 = atan2f(-fEaFiltered, fEbFiltered);
+    dbg_tst(0, ftheta0);
+    dbg_tst(1, atan2f(-fIaError, fIbError));
+    dbg_tst(2, fEstIa);
+
     return ftheta;
 }

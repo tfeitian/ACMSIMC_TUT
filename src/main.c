@@ -2,6 +2,8 @@
 #include "smo.h"
 #include "log_socket.h"
 
+static float g_fTest[10];
+
 #if MACHINE_TYPE == INDUCTION_MACHINE
 struct InductionMachineSimulated ACM;
 void Machine_init()
@@ -235,7 +237,7 @@ int main()
     acm_init();
     ob_init();
     socket_vinit();
-    smo_vInit(ACM.R, (ACM.Ld + ACM.Lq) / 2.0);
+    smo_vInit(ACM.R, ACM.L0);
 
     FILE *fw;
     fw = fopen("algorithm.dat", "w");
@@ -250,11 +252,11 @@ int main()
     {
 
         /* Command and Load Torque */
-        if (CTRL.timebase > 10)
+        if (CTRL.timebase > 5)
         {
             ACM.rpm_cmd = 250;
         }
-        else if (CTRL.timebase > 5)
+        else if (CTRL.timebase > 2.5)
         {
             ACM.Tload = 5;
         }
@@ -330,9 +332,9 @@ void write_data_to_file(FILE *fw)
                     CTRL.uMs_cmd, CTRL.uTs_cmd, CTRL.iMs_cmd, CTRL.iMs, CTRL.iTs_cmd, CTRL.iTs,
                     ob.psi_mu_al, ob.tajima.omg * RAD_PER_SEC_2_RPM);
 #elif MACHINE_TYPE == SYNCHRONOUS_MACHINE
-            fprintf(fw, "%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g\n",
+            fprintf(fw, "%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g\n",
                     ACM.x[0], ACM.x[1], ACM.x[2], ACM.x[3],
-                    CTRL.uMs_cmd, CTRL.uTs_cmd, CTRL.iMs_cmd, CTRL.iMs, CTRL.iTs_cmd, CTRL.iTs, ob.theta);
+                    CTRL.uMs_cmd, CTRL.uTs_cmd, CTRL.iMs_cmd, CTRL.iMs, CTRL.iTs_cmd, CTRL.iTs, ob.theta, g_fTest[0], g_fTest[1], g_fTest[2], g_fTest[3]);
 #endif
             dbglog("ACM.x[0]", ACM.x[0]);
             dbglog("ACM.x[1]", ACM.x[1]);
@@ -347,7 +349,7 @@ void write_data_to_file(FILE *fw)
             dbglog("ob.theta", ob.theta);
         }
     }
-    socket_vSend();
+    // socket_vSend();
 
     if (bool_animate_on == false)
     {
@@ -363,4 +365,9 @@ int isNumber(double x)
     // but it's false if x is a NaN (1.#QNAN0).
     return (x == x);
     // see https://www.johndcook.com/blog/IEEE_exceptions_in_cpp/ cb: https://stackoverflow.com/questions/347920/what-do-1-inf00-1-ind00-and-1-ind-mean
+}
+
+void dbg_tst(int tnum, float fnum)
+{
+    g_fTest[tnum] = fnum;
 }

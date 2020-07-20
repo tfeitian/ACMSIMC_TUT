@@ -31,7 +31,7 @@
 #endif
 
 /* How long should I go? */
-#define NUMBER_OF_LINES (150000)
+#define NUMBER_OF_LINES (75000)
 
 #define MACHINE_TS 1.25e-4
 #define MACHINE_TS_INVERSE 8000

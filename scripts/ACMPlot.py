@@ -1,11 +1,12 @@
-#coding:u8
+# coding:u8
+import csv
 from pylab import plt, mpl, arange, show
 from mpl_toolkits.axes_grid1.inset_locator import zoomed_inset_axes
 from mpl_toolkits.axes_grid1.inset_locator import mark_inset
 # from pprint import pprint
 from collections import OrderedDict as O
 # plot style
-plt.style.use('ggplot') 
+plt.style.use('ggplot')
 # plt.style.use('grayscale') # print plt.style.available # get [u'dark_background', u'bmh', u'grayscale', u'ggplot', u'fivethirtyeight']
 # plot setting
 mpl.rcParams['legend.fontsize'] = 12
@@ -13,32 +14,31 @@ mpl.rcParams['legend.fontsize'] = 14
 mpl.rcParams['font.family'] = ['Times New Roman']
 mpl.rcParams['font.size'] = 14
 # fontdict
-font = {'family' : 'Times New Roman', #'serif',
-        'color' : 'darkblue',
-        'weight' : 'normal',
-        'size' : 14,}
+font = {'family': 'Times New Roman',  # 'serif',
+        'color': 'darkblue',
+        'weight': 'normal',
+        'size': 14, }
 
 
 ######################
 # Read in Data
-import csv
 
 try:
     f_name = './algorithm.dat'
     with open(f_name, mode='r') as f:
         print('found '+f_name)
 except:
-    f_name = '../algorithm.dat'    
+    f_name = '../algorithm.dat'
 print('[Python] Read in data...')
-ll = [  [],[],[],[],[],[],[],[],[],[],
-        [],[],[],[],[],[],[],[],[],[],
-        [],[],[],[],[],[],[],[],[],[],
-        [],[],[],[],[],[],[],[],[],[],
-        [],[],[],[],[],[],[],[],[],[],
-        [],[],[],[],[],[],[],[],[],[],
-        [],[],[],[],[],[],[],[],[],[],
-        [],[],[],[],[],[],[],[],[],[],
-        [],[],[],[],[],[],[],[],[],[]]
+ll = [[], [], [], [], [], [], [], [], [], [],
+      [], [], [], [], [], [], [], [], [], [],
+      [], [], [], [], [], [], [], [], [], [],
+      [], [], [], [], [], [], [], [], [], [],
+      [], [], [], [], [], [], [], [], [], [],
+      [], [], [], [], [], [], [], [], [], [],
+      [], [], [], [], [], [], [], [], [], [],
+      [], [], [], [], [], [], [], [], [], [],
+      [], [], [], [], [], [], [], [], [], []]
 with open(f_name, mode='r') as f:
     buf = f.readlines()
     reader = csv.reader(buf)
@@ -55,7 +55,7 @@ with open(f_name, mode='r') as f:
 
 for ind, l in enumerate(ll):
     # print len(l)
-    if l==[]:
+    if l == []:
         ll_len = ind
         break
 print('\tQuantities amount:', ll_len)
@@ -67,13 +67,16 @@ print('\tData Length:', ll[0].__len__())
 
 def get_axis(cNr):
     # fig, axes = plt.subplots(ncols=cNr[0], nrows=cNr[1], dpi=150, sharex=True);
-    fig, axes = plt.subplots(ncols=cNr[0], nrows=cNr[1], sharex=True, figsize=(16*0.8, 9*0.8), dpi=80, facecolor='w', edgecolor='k');
-    fig.subplots_adjust(right=0.95, bottom=0.1, top=0.95, hspace=0.2, wspace=0.02)    
+    fig, axes = plt.subplots(ncols=cNr[0], nrows=cNr[1], sharex=True, figsize=(
+        16*0.8, 9*0.8), dpi=80, facecolor='w', edgecolor='k')
+    fig.subplots_adjust(right=0.95, bottom=0.1, top=0.95,
+                        hspace=0.2, wspace=0.02)
     # fig.subplots_adjust(right=0.85, bottom=0.1, top=0.95, hspace=0.25)
-    if sum(cNr)<=2:
+    if sum(cNr) <= 2:
         return axes
     else:
         return axes.ravel()
+
 
 def plot_it(ax, ylabel, d):
     count = 0
@@ -93,37 +96,42 @@ def plot_it(ax, ylabel, d):
     # ax.set_ylim(0.85,1.45)
 
 
-
 #################################
 # Automatic Code Generation
-time = arange(1,ll[0].__len__()+1,1) * 10/4000.000000
+time = arange(1, ll[0].__len__()+1, 1) * 10/4000.000000
 print(time)
 # title: Observer
-ax_list = get_axis((1,5))
+ax_list = get_axis((1, 5))
 plot_it(ax_list[0], r'$i_s$ [V]', O([
-                                             (r'0',   ll[0]),  
-                                             (r'1',   ll[1]),  
-                                             ]))
+    (r'0',   ll[0]),
+    (r'1',   ll[1]),
+]))
 plot_it(ax_list[1], r'$\omega$ [rpm]', O([
-                                             (r'0',   ll[2]),  
-                                             ]))
+    (r'0',   ll[2]),
+]))
 plot_it(ax_list[2], r'$\theta_{rm} $ [rad]', O([
-                                             (r'1',   ll[3]), 
-                                             (r'2',   ll[10]) 
-                                             ]))
+    (r'1',   ll[3]),
+    (r'2',   ll[10]),
+    (r'3',   ll[11]),
+    # (r'4',   ll[12])
+]))
 plot_it(ax_list[3], r'voltage [V]', O([
-                                             (r'0',   ll[4]),  
-                                             (r'1',   ll[5]),  
-                                             ]))
+    (r'0',   ll[4]),
+    (r'1',   ll[5]),
+]))
 plot_it(ax_list[4], r'MT current [A]', O([
-                                             (r'1',   ll[6]),  
-                                             (r'2',   ll[7]),  
-                                             (r'3',   ll[8]),  
-                                             (r'4',   ll[9]),  
-                                             ]))
+    (r'1',   ll[6]),
+    (r'2',   ll[7]),
+    (r'3',   ll[8]),
+    (r'4',   ll[9]),
+]))
 # Automatic END
-show()
+
 # savefig(r'C:/Dr.H/(0) GET WORKING/05 3ph 3paramsId/3ph_TDDA_TEX/pic/'+where[:-1], dpi=300)
+ax_list = get_axis((1, 1))
 
-
-
+plot_it(ax_list, r'$\theta_{rm} $ [rad]', O([
+    (r'1',   ll[13]),
+    (r'2',   ll[6])
+]))
+show()

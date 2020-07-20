@@ -31,7 +31,7 @@
     },
     {
       "label": "Build and Run",
-      "dependsOn": ["buildexe", "run", "runscript"],
+      "dependsOn": ["build exe", "runscript"],
       "dependsOrder": "sequence",
       "group": {
         "kind": "build",

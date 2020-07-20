@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <!-- 引入 ECharts 文件 -->
+    <script src="https://cdn.bootcss.com/echarts/4.2.1-rc1/echarts.min.js"></script>
+  </head>
+  <body>
+    <!-- 为 ECharts 准备一个具备大小（宽高）的 DOM -->
+    <div id="main" style="width: 1000px; height: 600px;"></div>
+    <input id="xAxis" value="<%= xAxis%>" type="hidden" />
+    <input id="series" value="<%= series%>" type="hidden" />
+    <script type="text/javascript">
+      // 基于准备好的dom，初始化echarts实例
+      var myChart = echarts.init(document.getElementById("main"));
+      var datas = document.getElementById("xAxis").value;
+      var data2 = document.getElementById("series").value;
+      var xAxis = datas.split(",");
+      var series = data2.split(",");
+
+      function arrTrans(num, arr) {
+        const newArr = [];
+        while (arr.length > 0) {
+          newArr.push(arr.splice(0, num));
+        }
+        return newArr;
+      }
+      console.log(datas);
+      console.log(data2);
+      temp = arrTrans(xAxis.length, series);
+      aa = [];
+      for (var i = 0; i < temp.length; i++) {
+        aa.push({
+          data: temp[i],
+          type: "line",
+          smooth: false,
+        });
+      }
+
+      option = {
+        xAxis: {
+          type: "category",
+          data: xAxis,
+        },
+        tooltip: {
+          trigger: "axis",
+        },
+        yAxis: {
+          type: "value",
+        },
+        dataZoom: [
+          {
+            show: true,
+            type: "inside",
+            filterMode: "none",
+            xAxisIndex: [0],
+            startValue: 0,
+            endValue: xAxis.length,
+          },
+        ],
+        series: aa,
+      };
+      myChart.setOption(option);
+    </script>
+  </body>
+</html>
