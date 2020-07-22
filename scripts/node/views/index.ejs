@@ -7,7 +7,10 @@
   </head>
   <body>
     <!-- 为 ECharts 准备一个具备大小（宽高）的 DOM -->
-    <div id="main" style="width: 1500px; height: 700px;"></div>
+    <div id="main" style="width: 1500px; height: 500px;"></div>
+    <div id="main2" style="width: 1500px; height: 500px;"></div>
+    <div id="main1" style="width: 1500px; height: 500px;"></div>
+    <div id="main3" style="width: 1500px; height: 500px;"></div>
     <input id="xAxis" value="<%= xAxis%>" type="hidden" />
     <input id="series" value="<%= series%>" type="hidden" />
     <script type="text/javascript">
@@ -25,8 +28,6 @@
         }
         return newArr;
       }
-      console.log(datas);
-      console.log(data2);
       temp = arrTrans(xAxis.length, series);
       aa = [];
       for (var i = 0; i < temp.length; i++) {
@@ -34,13 +35,15 @@
           data: temp[i],
           type: "line",
           smooth: false,
+          large: true,
         });
       }
       bb = [];
-      bb.push(aa[3]);
+      //bb.push(aa[3]);
+      //bb.push(aa[10]);
       bb.push(aa[10]);
       bb.push(aa[11]);
-      bb.push(aa[12]);
+      //bb.push(aa[13]);
 
       option = {
         xAxis: {
@@ -62,10 +65,39 @@
             startValue: 0,
             endValue: xAxis.length,
           },
+          {
+            type: "slider",
+          },
         ],
         series: bb,
       };
       myChart.setOption(option);
+
+      var option1 = JSON.parse(JSON.stringify(option));
+      var bb1 = [];
+      bb1.push(aa[13]);
+      bb1.push(aa[14]);
+      option1.series = bb1;
+      var myChart1 = echarts.init(document.getElementById("main1"));
+      myChart1.setOption(option1);
+
+      var option2 = JSON.parse(JSON.stringify(option));
+      var bb2 = [];
+      bb2.push(aa[10]);
+      bb2.push(aa[11]);
+      bb2.push(aa[15]);
+      bb2.push(aa[16]);
+      option2.series = bb2;
+      var myChart2 = echarts.init(document.getElementById("main2"));
+      myChart2.setOption(option2);
+
+      var option2 = JSON.parse(JSON.stringify(option));
+      var bb2 = [];
+      bb2.push(aa[3]);
+      bb2.push(aa[12]);
+      option2.series = bb2;
+      var myChart2 = echarts.init(document.getElementById("main3"));
+      myChart2.setOption(option2);
     </script>
   </body>
 </html>

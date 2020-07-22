@@ -332,9 +332,11 @@ void write_data_to_file(FILE *fw)
                     CTRL.uMs_cmd, CTRL.uTs_cmd, CTRL.iMs_cmd, CTRL.iMs, CTRL.iTs_cmd, CTRL.iTs,
                     ob.psi_mu_al, ob.tajima.omg * RAD_PER_SEC_2_RPM);
 #elif MACHINE_TYPE == SYNCHRONOUS_MACHINE
-            fprintf(fw, "%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g\n",
+            fprintf(fw, "%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g\n",
                     ACM.x[0], ACM.x[1], ACM.x[2], ACM.x[3],
-                    CTRL.uMs_cmd, CTRL.uTs_cmd, CTRL.iMs_cmd, CTRL.iMs, CTRL.iTs_cmd, CTRL.iTs, ob.theta, g_fTest[0], g_fTest[1], g_fTest[2], g_fTest[3]);
+                    CTRL.uMs_cmd, CTRL.uTs_cmd, CTRL.iMs_cmd, CTRL.iMs,
+                    CTRL.iTs_cmd, CTRL.iTs, g_fTest[0],
+                    g_fTest[1], g_fTest[2], g_fTest[3], g_fTest[4], g_fTest[5], g_fTest[6]);
 #endif
             dbglog("ACM.x[0]", ACM.x[0]);
             dbglog("ACM.x[1]", ACM.x[1]);
@@ -369,5 +371,5 @@ int isNumber(double x)
 
 void dbg_tst(int tnum, float fnum)
 {
-    g_fTest[tnum] = fnum;
+    g_fTest[tnum - 10] = fnum;
 }

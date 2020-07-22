@@ -12,7 +12,7 @@ app.use(router.routes()).use(router.allowedMethods());
 app.listen(3000);
 var f = length => Array.from({
     length
-}).map((v, k) => k);
+}).map((v, k) => k * 1);
 
 var series = [];
 var xAxis = [];
@@ -44,10 +44,13 @@ var refresh = function () {
         if (err) {
             return console.error(err);
         }
+        if (data.length < 2000) {
+            return;
+        }
         ConvertToTable(data, function (table) {
             // console.log(table);
             var length = table.length;
-            var step = 10;
+            var step = 4;
             series = [];
             xAxis = f(length / step);
             for (j = 0; j < table[1].length; j++) {

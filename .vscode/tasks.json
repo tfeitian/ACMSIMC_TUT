@@ -16,7 +16,7 @@
       "label": "run",
       "command": "${workspaceRoot}\\build\\main.exe",
       "options": {
-        "cwd": "${workspaceRoot}"
+        "cwd": "${workspaceRoot}\\build"
       }
     },
     {
@@ -31,7 +31,7 @@
     },
     {
       "label": "Build and Run",
-      "dependsOn": ["build exe", "runscript"],
+      "dependsOn": ["build exe", "run"],
       "dependsOrder": "sequence",
       "group": {
         "kind": "build",
