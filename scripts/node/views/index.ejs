@@ -4,18 +4,22 @@
     <meta charset="utf-8" />
     <!-- 引入 ECharts 文件 -->
     <script src="https://cdn.bootcss.com/echarts/4.2.1-rc1/echarts.min.js"></script>
+    <style type="text/css">
+      .picture {
+        border: 1pt rgba(251, 255, 0, 0.445) solid;
+        width: 1500px;
+        height: 500px;
+        border-radius: 25px;
+      }
+    </style>
   </head>
   <body>
     <!-- 为 ECharts 准备一个具备大小（宽高）的 DOM -->
-    <div id="main" style="width: 1500px; height: 500px;"></div>
-    <div id="main2" style="width: 1500px; height: 500px;"></div>
-    <div id="main1" style="width: 1500px; height: 500px;"></div>
-    <div id="main3" style="width: 1500px; height: 500px;"></div>
+    <div id="view"></div>
     <input id="xAxis" value="<%= xAxis%>" type="hidden" />
     <input id="series" value="<%= series%>" type="hidden" />
     <script type="text/javascript">
       // 基于准备好的dom，初始化echarts实例
-      var myChart = echarts.init(document.getElementById("main"));
       var datas = document.getElementById("xAxis").value;
       var data2 = document.getElementById("series").value;
       var xAxis = datas.split(",");
@@ -28,6 +32,7 @@
         }
         return newArr;
       }
+
       temp = arrTrans(xAxis.length, series);
       aa = [];
       for (var i = 0; i < temp.length; i++) {
@@ -38,12 +43,6 @@
           large: true,
         });
       }
-      bb = [];
-      //bb.push(aa[3]);
-      //bb.push(aa[10]);
-      bb.push(aa[10]);
-      bb.push(aa[11]);
-      //bb.push(aa[13]);
 
       option = {
         xAxis: {
@@ -69,35 +68,27 @@
             type: "slider",
           },
         ],
-        series: bb,
+        series: null,
       };
-      myChart.setOption(option);
 
-      var option1 = JSON.parse(JSON.stringify(option));
-      var bb1 = [];
-      bb1.push(aa[13]);
-      bb1.push(aa[14]);
-      option1.series = bb1;
-      var myChart1 = echarts.init(document.getElementById("main1"));
-      myChart1.setOption(option1);
+      function showone(index) {
+        var view = document.getElementById("view");
+        newpage = document.createElement("div");
+        newpage.setAttribute("class", "picture");
+        newpage = view.appendChild(newpage);
+        var myChart = echarts.init(newpage);
+        bb = [];
+        for (var i = 0; i < index.length; i++) {
+          bb.push(aa[index[i]]);
+        }
+        option.series = bb;
+        myChart.setOption(option);
+      }
 
-      var option2 = JSON.parse(JSON.stringify(option));
-      var bb2 = [];
-      bb2.push(aa[10]);
-      bb2.push(aa[11]);
-      bb2.push(aa[15]);
-      bb2.push(aa[16]);
-      option2.series = bb2;
-      var myChart2 = echarts.init(document.getElementById("main2"));
-      myChart2.setOption(option2);
-
-      var option2 = JSON.parse(JSON.stringify(option));
-      var bb2 = [];
-      bb2.push(aa[3]);
-      bb2.push(aa[12]);
-      option2.series = bb2;
-      var myChart2 = echarts.init(document.getElementById("main3"));
-      myChart2.setOption(option2);
+      showone([10, 11]);
+      showone([13, 14]);
+      showone([10, 11, 15, 16]);
+      showone([3, 12]);
     </script>
   </body>
 </html>
