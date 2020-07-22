@@ -83,12 +83,16 @@
         }
         option.series = bb;
         myChart.setOption(option);
+        return myChart;
       }
 
-      showone([10, 11]);
-      showone([13, 14]);
-      showone([10, 11, 15, 16]);
-      showone([3, 12]);
+      charts = [];
+      charts.push(showone([10, 11]));
+      charts.push(showone([15, 16]));
+      charts.push(showone([13, 14]));
+      charts.push(showone([3, 12]));
+      //linkage
+      echarts.connect([charts[0], charts[1]]);
     </script>
   </body>
 </html>
