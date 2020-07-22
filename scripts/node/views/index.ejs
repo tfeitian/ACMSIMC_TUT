@@ -41,10 +41,27 @@
           type: "line",
           smooth: false,
           large: true,
+          name: String(i),
         });
       }
 
       option = {
+        title: {
+          text: "",
+        },
+        legend: {
+          data: [],
+        },
+        toolbox: {
+          feature: {
+            dataZoom: {
+              yAxisIndex: false,
+            },
+            saveAsImage: {
+              pixelRatio: 2,
+            },
+          },
+        },
         xAxis: {
           type: "category",
           data: xAxis,
@@ -67,6 +84,12 @@
           {
             type: "slider",
           },
+          {
+            type: "slider",
+            show: true,
+            yAxisIndex: [0],
+            left: "5%",
+          },
         ],
         series: null,
       };
@@ -75,13 +98,19 @@
         var view = document.getElementById("view");
         newpage = document.createElement("div");
         newpage.setAttribute("class", "picture");
-        newpage = view.appendChild(newpage);
-        var myChart = echarts.init(newpage);
+        newpic = view.appendChild(newpage);
+        var myChart = echarts.init(newpic);
         bb = [];
         for (var i = 0; i < index.length; i++) {
           bb.push(aa[index[i]]);
         }
         option.series = bb;
+        option.title.text = index;
+        var lenged = [];
+        for (var i of index) {
+          lenged.push(String(i));
+        }
+        option.legend.data = lenged;
         myChart.setOption(option);
         return myChart;
       }
@@ -90,9 +119,11 @@
       charts.push(showone([10, 11]));
       charts.push(showone([15, 16]));
       charts.push(showone([13, 14]));
+      charts.push(showone([17, 18]));
       charts.push(showone([3, 12]));
       //linkage
       echarts.connect([charts[0], charts[1]]);
+      echarts.connect([charts[2], charts[3]]);
     </script>
   </body>
 </html>

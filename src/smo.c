@@ -107,6 +107,8 @@ float smo_vCalc(float fIa, float fIb, float fUa, float fUb, float fOmega)
     dbg_tst(12, ftheta0); //atan2f(-fEa, fEb));
     dbg_tst(13, fEa);
     dbg_tst(14, fEb);
+    dbg_tst(17, fZa);
+    dbg_tst(18, fZb);
 
     return ftheta;
 }
