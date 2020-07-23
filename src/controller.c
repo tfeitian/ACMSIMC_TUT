@@ -1,9 +1,10 @@
 #include "ACMSim.h"
 #include "controller.h"
 #include "observer.h"
+#include "motor.h"
 /* PI Control
  * */
-double PI(struct PI_Reg *r, double err)
+static double PI(struct PI_Reg *r, double err)
 {
 #define I_STATE r->i_state
 #define I_LIMIT r->i_limit
@@ -146,7 +147,7 @@ void control(double speed_cmd, double speed_cmd_dot)
         CTRL.omg_ctrl_err = CTRL.omg_fb - speed_cmd * RPM_2_RAD_PER_SEC;
         CTRL.iTs_cmd = -PI(&CTRL.pi_speed, CTRL.omg_ctrl_err);
 
-        CTRL.speed_ctrl_err = CTRL.omg_ctrl_err * RAD_PER_SEC_2_RPM;
+        CTRL.speed_ctrl_err = CTRL.omg_ctrl_err * RAD_PER_SEC_2_RPM(ACM.npp);
     }
 
 #if CONTROL_STRATEGY == DFOC
@@ -304,10 +305,10 @@ void control(double speed_cmd, double speed_cmd_dot)
     // if (vc_count++ == VC_LOOP_CEILING * DOWN_FREQ_EXE_INVERSE)
     {
         vc_count = 0;
-        CTRL.omg_ctrl_err = CTRL.omg_fb - speed_cmd * RPM_2_RAD_PER_SEC;
+        CTRL.omg_ctrl_err = CTRL.omg_fb - speed_cmd * RPM_2_RAD_PER_SEC(ACM.npp);
         CTRL.iTs_cmd = -PI(&CTRL.pi_speed, CTRL.omg_ctrl_err);
 
-        CTRL.speed_ctrl_err = CTRL.omg_ctrl_err * RAD_PER_SEC_2_RPM;
+        CTRL.speed_ctrl_err = CTRL.omg_ctrl_err * RAD_PER_SEC_2_RPM(ACM.npp);
     }
 
 #if CONTROL_STRATEGY == NULL_D_AXIS_CURRENT_CONTROL
@@ -334,3 +335,24 @@ void control(double speed_cmd, double speed_cmd_dot)
 }
 
 #endif
+
+void measurement()
+{
+    US_C(0) = CTRL.ual;
+    US_C(1) = CTRL.ube;
+    US_P(0) = US_C(0);
+    US_P(1) = US_C(1);
+
+#if MACHINE_TYPE == INDUCTION_MACHINE
+    IS_C(0) = ACM.ial;
+    IS_C(1) = ACM.ibe;
+    im.omg = ACM.x[4];
+    im.theta_r = ACM.x[5];
+#elif MACHINE_TYPE == SYNCHRONOUS_MACHINE
+    IS_C(0) = ACM.ial;
+    IS_C(1) = ACM.ibe;
+    sm.omg = ACM.x[2];
+    sm.theta_d = ACM.x[3];
+    sm.theta_r = sm.theta_d;
+#endif
+}

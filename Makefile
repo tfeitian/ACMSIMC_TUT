@@ -9,7 +9,9 @@ src/controller.c \
 src/smo.c \
 src/log.c \
 src/socket.c \
-src/cJSON.c
+src/cJSON.c \
+src/inverter.c \
+src/motor.c
 
 CC = $(PREFIX)gcc
 

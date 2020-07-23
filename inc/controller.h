@@ -4,17 +4,18 @@
 
 #define VC_LOOP_CEILING 40
 
-struct PI_Reg{
-   double   Kp;
-   double   Ti;
-   double   Ki; // Ki = Kp/Ti*TS
-   double   i_state;
-   double   i_limit;
+struct PI_Reg
+{
+    double Kp;
+    double Ti;
+    double Ki; // Ki = Kp/Ti*TS
+    double i_state;
+    double i_limit;
 };
-double PI(struct PI_Reg *r, double err);
 
 #if MACHINE_TYPE == INDUCTION_MACHINE
-struct ControllerForExperiment{
+struct ControllerForExperiment
+{
 
     double timebase;
 
@@ -65,7 +66,8 @@ struct ControllerForExperiment{
     struct PI_Reg pi_iTs;
 };
 #elif MACHINE_TYPE == SYNCHRONOUS_MACHINE
-struct ControllerForExperiment{
+struct ControllerForExperiment
+{
 
     double timebase;
 
@@ -117,5 +119,5 @@ extern struct ControllerForExperiment CTRL;
 
 void CTRL_init();
 void control(double speed_cmd, double speed_cmd_dot);
-
+void measurement();
 #endif
