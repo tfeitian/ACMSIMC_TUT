@@ -76,13 +76,6 @@ extern struct Observer ob;
 #elif MACHINE_TYPE == SYNCHRONOUS_MACHINE
 
 /* Macro for External Access Interface */
-#define US(X) sm.us[X]
-#define IS(X) sm.is[X]
-#define US_C(X) sm.us_curr[X]
-#define IS_C(X) sm.is_curr[X]
-#define US_P(X) sm.us_prev[X]
-#define IS_P(X) sm.is_prev[X]
-
 struct SynchronousMachine
 {
     double us[2];

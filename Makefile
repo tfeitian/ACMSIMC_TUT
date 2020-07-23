@@ -19,14 +19,20 @@ C_DEFS =
 
 C_INCLUDES = -Iinc
 
-CFLAGS = $(C_DEFS) $(C_INCLUDES) -g
+CFLAGS = $(C_DEFS) $(C_INCLUDES)
+
+ifeq ($(DEBUG), 1)
+CFLAGS += -g  -gdwarf-2
+endif
+
+CFLAGS += -MMD -MP -MF"$(@:%.o=%.d)"
 
 LDFLAGS =  $(LIBDIR) $(LIBS)
 
 LIBS = -lWS2_32
 LIBDIR = "-L/lib"
 
-all: $(BUILD_DIR)/$(TARGET).exe
+#all: $(BUILD_DIR)/$(TARGET).exe
 
 # list of objects
 OBJECTS = $(addprefix $(BUILD_DIR)/,$(notdir $(C_SOURCES:.c=.o)))
@@ -53,3 +59,7 @@ clean:
 
 .PHONY: all clean
 
+#######################################
+# dependencies
+#######################################
+-include $(wildcard $(BUILD_DIR)/*.d)

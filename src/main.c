@@ -68,7 +68,7 @@ int main()
 
             // observation();
 
-            ob.theta = smo_vCalc(IS_C(0), IS_C(1), US_C(0), US_C(1), sm.omg);
+            ob.theta = smo_vCalc(ACM.ial, ACM.ibe, ACM.ual, ACM.ube, sm.omg);
 
             write_data_to_file(fw);
 

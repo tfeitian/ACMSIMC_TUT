@@ -1,5 +1,6 @@
 #include "ACMSim.h"
 #include "observer.h"
+#include "motor.h"
 
 #if MACHINE_TYPE == INDUCTION_MACHINE
 struct InductionMachine im;

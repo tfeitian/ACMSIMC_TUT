@@ -283,8 +283,8 @@ void control(double speed_cmd, double speed_cmd_dot)
     CTRL.omg_fb = sm.omg;
 #endif
     // Input 2 is feedback: measured current
-    CTRL.ial_fb = IS_C(0);
-    CTRL.ibe_fb = IS_C(1);
+    CTRL.ial_fb = sm.is_curr[0];
+    CTRL.ibe_fb = sm.is_curr[1];
 // Input 3 is the rotor d-axis position
 #if SENSORLESS_CONTROL
     getch("Not Implemented");
@@ -338,10 +338,8 @@ void control(double speed_cmd, double speed_cmd_dot)
 
 void measurement()
 {
-    US_C(0) = CTRL.ual;
-    US_C(1) = CTRL.ube;
-    US_P(0) = US_C(0);
-    US_P(1) = US_C(1);
+    sm.us_curr[0] = CTRL.ual;
+    sm.us_curr[1] = CTRL.ube;
 
 #if MACHINE_TYPE == INDUCTION_MACHINE
     IS_C(0) = ACM.ial;
@@ -349,8 +347,8 @@ void measurement()
     im.omg = ACM.x[4];
     im.theta_r = ACM.x[5];
 #elif MACHINE_TYPE == SYNCHRONOUS_MACHINE
-    IS_C(0) = ACM.ial;
-    IS_C(1) = ACM.ibe;
+    sm.is_curr[0] = ACM.ial;
+    sm.is_curr[1] = ACM.ibe;
     sm.omg = ACM.x[2];
     sm.theta_d = ACM.x[3];
     sm.theta_r = sm.theta_d;
