@@ -128,6 +128,7 @@ struct Observer
 extern struct Observer ob;
 
 #endif
+extern struct SynchronousMachine sm;
 
 void acm_init();
 void ob_init();

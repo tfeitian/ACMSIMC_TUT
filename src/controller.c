@@ -1,5 +1,6 @@
 #include "ACMSim.h"
-
+#include "controller.h"
+#include "observer.h"
 /* PI Control
  * */
 double PI(struct PI_Reg *r, double err)

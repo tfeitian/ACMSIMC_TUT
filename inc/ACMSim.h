@@ -141,9 +141,6 @@ struct SynchronousMachineSimulated
 extern struct SynchronousMachineSimulated ACM;
 #endif
 
-#include "controller.h"
-#include "observer.h"
-
 /* Declaration of Utility Function */
 void write_header_to_file(FILE *fw);
 void write_data_to_file(FILE *fw);

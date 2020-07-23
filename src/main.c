@@ -1,6 +1,8 @@
 #include "ACMSim.h"
 #include "smo.h"
 #include "log_socket.h"
+#include "controller.h"
+#include "observer.h"
 
 static float g_fTest[10];
 

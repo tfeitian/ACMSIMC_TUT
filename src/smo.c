@@ -35,7 +35,8 @@ void smo_vInit(float fRs, float fLs)
 
     tmpx1 = 20.0 * (float)MOTOR_POLES * 2 / 60 * T_SAMPLE;
 
-    fMaxCurrentError = 1.5;
+    fMaxCurrentError = 0;
+    //1.5;
     //105.3f / 200; // !This value is the key parameter for different load
 
     fKslf = 0.1057;
