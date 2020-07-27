@@ -1,6 +1,7 @@
 {
   "version": "2.0.0",
-  "tasks": [{
+  "tasks": [
+    {
       "label": "build exe",
       "command": "make",
       "options": {
@@ -10,7 +11,9 @@
         "kind": "build",
         "isDefault": true
       },
-      "problemMatcher": ["$gcc"]
+      "problemMatcher": [
+        "$gcc"
+      ]
     },
     {
       "label": "run",
@@ -30,14 +33,30 @@
       }
     },
     {
+      "label": "start server",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "server.js"
+      ],
+      "options": {
+        "cwd": "${workspaceRoot}\\scripts\\node"
+      },
+      "problemMatcher": []
+    },
+    {
       "label": "Build and Run",
-      "dependsOn": ["build exe", "run"],
+      "dependsOn": [
+        "build exe",
+        "run"
+      ],
       "dependsOrder": "sequence",
       "group": {
         "kind": "build",
         "isDefault": true
       },
-      "problemMatcher": ["$gcc"]
+      "problemMatcher": [
+        "$gcc"
+      ]
     }
   ]
 }

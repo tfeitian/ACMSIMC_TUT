@@ -1,4 +1,9 @@
 TARGET = main
+######################################
+# building variables
+######################################
+# debug build?
+DEBUG = 1
 
 BUILD_DIR = build
 

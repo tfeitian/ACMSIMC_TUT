@@ -31,12 +31,13 @@ struct InductionMachineSimulated
 
 struct SynchronousMachineSimulated
 {
-    double x[5];
     double rpm;
-    double rpm_cmd;
+    double omg;
     double rpm_deriv_cmd;
     double Tload;
     double Tem;
+    double Ea;
+    double Eb;
 
     double Bemf; //Back emf rms value @ 1000RPM
     double R;

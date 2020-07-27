@@ -11,6 +11,9 @@
         height: 500px;
         border-radius: 25px;
       }
+      .picture:hover {
+        border: 2pt blue solid;
+      }
     </style>
   </head>
   <body>
@@ -39,7 +42,7 @@
         aa.push({
           data: temp[i],
           type: "line",
-          smooth: false,
+          smooth: true,
           large: true,
           name: String(i),
         });
@@ -87,6 +90,7 @@
           {
             type: "slider",
             show: true,
+            filterMode: "none",
             yAxisIndex: [0],
             left: "5%",
           },
@@ -120,7 +124,9 @@
       charts.push(showone([15, 16]));
       charts.push(showone([13, 14]));
       charts.push(showone([17, 18]));
-      charts.push(showone([3, 12]));
+      charts.push(showone([3, 12, 21]));
+      charts.push(showone([19, 20]));
+      charts.push(showone([0, 1, 2]));
       //linkage
       echarts.connect([charts[0], charts[1]]);
       echarts.connect([charts[2], charts[3]]);

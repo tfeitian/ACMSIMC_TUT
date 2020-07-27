@@ -60,6 +60,7 @@ var refresh = function () {
                 }
                 series.push(row);
             }
+            console.log("Visit http://localhost:3000")
             console.log("Refresh!");
         })
     });

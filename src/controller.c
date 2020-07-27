@@ -340,17 +340,9 @@ void measurement()
 {
     sm.us_curr[0] = CTRL.ual;
     sm.us_curr[1] = CTRL.ube;
-
-#if MACHINE_TYPE == INDUCTION_MACHINE
-    IS_C(0) = ACM.ial;
-    IS_C(1) = ACM.ibe;
-    im.omg = ACM.x[4];
-    im.theta_r = ACM.x[5];
-#elif MACHINE_TYPE == SYNCHRONOUS_MACHINE
     sm.is_curr[0] = ACM.ial;
     sm.is_curr[1] = ACM.ibe;
-    sm.omg = ACM.x[2];
-    sm.theta_d = ACM.x[3];
+    sm.omg = ACM.omg;
+    sm.theta_d = ACM.theta_d;
     sm.theta_r = sm.theta_d;
-#endif
 }

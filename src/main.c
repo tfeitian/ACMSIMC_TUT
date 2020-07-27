@@ -7,7 +7,7 @@
 #include "inverter.h"
 #include "userdefine.h"
 
-static float g_fTest[10];
+static float g_fTest[20];
 
 int main()
 {
@@ -32,13 +32,13 @@ int main()
     int _;       // _ for the outer iteration
     int dfe = 0; // dfe for down frequency execution
 
-    double ud, uq;
+    double ud = 0.0, uq = 0.0, rpm_cmd = 0.0;
     for (_ = 0; _ < NUMBER_OF_LINES; ++_)
     {
         /* Command and Load Torque */
         if (timebase > 5)
         {
-            ACM.rpm_cmd = 250;
+            rpm_cmd = 250;
         }
         else if (timebase > 2.5)
         {
@@ -46,7 +46,7 @@ int main()
         }
         else
         {
-            ACM.rpm_cmd = 50;
+            rpm_cmd = 50;
             ACM.Tload = 1;
         }
 
@@ -68,14 +68,14 @@ int main()
 
             // observation();
 
-            ob.theta = smo_vCalc(ACM.ial, ACM.ibe, ACM.ual, ACM.ube, sm.omg);
+            ob.theta = smo_vCalc(sm.is_curr[0], sm.is_curr[1], CTRL.ual, CTRL.ube, sm.omg);
 
             write_data_to_file(fw);
 
-            control(ACM.rpm_cmd, 0);
+            control(rpm_cmd, 0);
         }
 
-        inverter_model(CTRL.ual, CTRL.ube, ACM.theta_d, &ud, &uq);
+        inverter_model(CTRL.ual, CTRL.ube, sm.theta_d, &ud, &uq);
     }
     end = clock();
     printf("The simulation in C costs %g sec.\n", (double)(end - begin) / CLOCKS_PER_SEC);
@@ -116,15 +116,17 @@ void write_data_to_file(FILE *fw)
                     CTRL.uMs_cmd, CTRL.uTs_cmd, CTRL.iMs_cmd, CTRL.iMs, CTRL.iTs_cmd, CTRL.iTs,
                     ob.psi_mu_al, ob.tajima.omg * RAD_PER_SEC_2_RPM(ACM.npp));
 #elif MACHINE_TYPE == SYNCHRONOUS_MACHINE
-            fprintf(fw, "%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g\n",
-                    ACM.x[0], ACM.x[1], ACM.x[2], ACM.x[3],
+            fprintf(fw, "%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g\n",
+                    ACM.id, ACM.iq, ACM.omg, ACM.theta_d,
                     CTRL.uMs_cmd, CTRL.uTs_cmd, CTRL.iMs_cmd, CTRL.iMs,
                     CTRL.iTs_cmd, CTRL.iTs, g_fTest[0],
                     g_fTest[1], g_fTest[2], g_fTest[3],
                     g_fTest[4], g_fTest[5], g_fTest[6],
-                    g_fTest[7], g_fTest[8]);
+                    g_fTest[7], g_fTest[8], g_fTest[9],
+                    g_fTest[10], g_fTest[11], g_fTest[12],
+                    g_fTest[13]);
 #endif
-            dbglog("ACM.x[0]", ACM.x[0]);
+            /*             dbglog("ACM.x[0]", ACM.x[0]);
             dbglog("ACM.x[1]", ACM.x[1]);
             dbglog("ACM.x[2]", ACM.x[2]);
             dbglog("ACM.x[3]", ACM.x[3]);
@@ -134,7 +136,7 @@ void write_data_to_file(FILE *fw)
             dbglog("CTRL.iMs", CTRL.iMs);
             dbglog("CTRL.iTs_cmd", CTRL.iTs_cmd);
             dbglog("CTRL.iTs", CTRL.iTs);
-            dbglog("ob.theta", ob.theta);
+            dbglog("ob.theta", ob.theta); */
         }
     }
     // socket_vSend();
@@ -142,7 +144,7 @@ void write_data_to_file(FILE *fw)
     if (bool_animate_on == false)
     {
         bool_animate_on = true;
-        printf("Start ACMAnimate\n");
+        // printf("Start ACMAnimate\n");
         // system("start python ./ACMAnimate.py");
     }
 }

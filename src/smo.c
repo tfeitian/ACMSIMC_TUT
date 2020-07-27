@@ -1,6 +1,7 @@
 #include <math.h>
 #include "ACMSim.h"
-#include "tool.h"
+#include "tools.h"
+#include "motor.h"
 
 #define T_SAMPLE ((float)TS) //Sample time
 #define Fre_Max 200          // Motor max frequency
@@ -35,12 +36,12 @@ void smo_vInit(float fRs, float fLs)
 
     tmpx1 = 20.0 * (float)MOTOR_POLES * 2 / 60 * T_SAMPLE;
 
-    fMaxCurrentError = 0;
+    fMaxCurrentError = 0.05;
     //1.5;
     //105.3f / 200; // !This value is the key parameter for different load
 
     fKslf = 0.1057;
-    fKslide = 0.25;
+    fKslide = 33.25;
 }
 
 static float fEstIa = 0.0f, fEstIb = 0.0f, fZa = 0.0f, fZb = 0.0f, fEa = 0.0f, fEb = 0.0f, fOmega, fOmegFiltered, fEaFiltered, fEbFiltered;
@@ -48,7 +49,10 @@ static float fEstIa = 0.0f, fEstIb = 0.0f, fZa = 0.0f, fZb = 0.0f, fEa = 0.0f, f
 float smo_vCalc(float fIa, float fIb, float fUa, float fUb, float fOmega)
 {
     fGsmopos = fGsmoposTmp; // * (245.37f / 2.5f);
-
+                            /*     fEa = ACM.Ea;
+    fEb = ACM.Eb;
+    fZa = 0;
+    fZb = 0; */
     fEstIa = fFsmopos * fEstIa + fGsmopos * (fUa - fEa - fZa);
     fEstIb = fFsmopos * fEstIb + fGsmopos * (fUb - fEb - fZb);
 

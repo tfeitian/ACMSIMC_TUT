@@ -1,5 +1,6 @@
 #include "ACMSim.h"
 #include "motor.h"
+#include "tools.h"
 
 #if MACHINE_TYPE == INDUCTION_MACHINE
 struct InductionMachineSimulated ACM;
@@ -9,6 +10,8 @@ struct SynchronousMachineSimulated ACM;
 #define NUMBER_OF_STATES 4
 #endif
 #define NS NUMBER_OF_STATES
+
+static double xx[5];
 
 static int isNumber(double x)
 {
@@ -117,10 +120,9 @@ void Machine_init()
     int i;
     for (i = 0; i < 5; ++i)
     {
-        ACM.x[i] = 0.0;
+        xx[i] = 0.0;
     }
     ACM.rpm = 0.0;
-    ACM.rpm_cmd = 0.0;
     ACM.rpm_deriv_cmd = 0.0;
     ACM.Tload = 0.0;
     ACM.Tem = 0.0;
@@ -164,7 +166,7 @@ int machine_simulation(double ud, double uq)
 {
     ACM.ud = ud;
     ACM.uq = uq;
-    rK555_Lin(0, ACM.x, ACM.Ts);
+    rK555_Lin(0, xx, ACM.Ts);
 
 // API for explicit access
 #if MACHINE_TYPE == INDUCTION_MACHINE
@@ -173,21 +175,28 @@ int machine_simulation(double ud, double uq)
     ACM.rpm = ACM.x[4] * 60 / (2 * M_PI * ACM.npp);
 
 #elif MACHINE_TYPE == SYNCHRONOUS_MACHINE
-    if (ACM.x[3] > M_PI)
+    if (xx[3] > M_PI)
     {
-        ACM.x[3] -= 2 * M_PI;
+        xx[3] -= 2 * M_PI;
     }
-    else if (ACM.x[3] < -M_PI)
+    else if (xx[3] < -M_PI)
     {
-        ACM.x[3] += 2 * M_PI; // 反转！
+        xx[3] += 2 * M_PI; // 反转！
     }
-    ACM.theta_d = ACM.x[3];
+    ACM.theta_d = xx[3];
 
-    ACM.id = ACM.x[0];
-    ACM.iq = ACM.x[1];
+    ACM.id = xx[0];
+    ACM.iq = xx[1];
     ACM.ial = MT2A(ACM.id, ACM.iq, cos(ACM.theta_d), sin(ACM.theta_d));
     ACM.ibe = MT2B(ACM.id, ACM.iq, cos(ACM.theta_d), sin(ACM.theta_d));
-    ACM.rpm = ACM.x[2] * 60 / (2 * M_PI * ACM.npp);
+    ACM.rpm = xx[2] * 60 / (2 * M_PI * ACM.npp);
+    ACM.omg = xx[2];
+    ACM.Ea = MT2A(ACM.ud, ACM.uq, cos(ACM.theta_d), sin(ACM.theta_d)) - ACM.R * ACM.ial;
+    ACM.Eb = MT2B(ACM.ud, ACM.uq, cos(ACM.theta_d), sin(ACM.theta_d)) - ACM.R * ACM.ibe;
+    //  -ACM.Ld *xx;
+    dbg_tst(19, ACM.Ea);
+    dbg_tst(20, ACM.Eb);
+    dbg_tst(21, atan2f(-ACM.Ea, ACM.Eb));
 #endif
 
     if (isNumber(ACM.rpm))
