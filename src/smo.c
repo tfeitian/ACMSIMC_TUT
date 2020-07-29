@@ -36,12 +36,12 @@ void smo_vInit(float fRs, float fLs)
 
     tmpx1 = 20.0 * (float)MOTOR_POLES * 2 / 60 * T_SAMPLE;
 
-    fMaxCurrentError = 0.05;
+    fMaxCurrentError = 0.03;
     //1.5;
     //105.3f / 200; // !This value is the key parameter for different load
 
     fKslf = 0.1057;
-    fKslide = 33.25;
+    fKslide = 53.25; //This value should be larger enough to make sure the SMO stable.
 }
 
 static float fEstIa = 0.0f, fEstIb = 0.0f, fZa = 0.0f, fZb = 0.0f, fEa = 0.0f, fEb = 0.0f, fOmega, fOmegFiltered, fEaFiltered, fEbFiltered;
@@ -109,9 +109,9 @@ float smo_vCalc(float fIa, float fIb, float fUa, float fUb, float fOmega)
     dbg_tst(11, fEstIb);
     dbg_tst(15, fIa);
     dbg_tst(16, fIb);
-    dbg_tst(12, ftheta0); //atan2f(-fEa, fEb));
-    dbg_tst(13, fEa);
-    dbg_tst(14, fEb);
+    dbg_tst(12, ftheta0); //ftheta0 //ftheta0); //atan2f(-fEa, fEb)
+    dbg_tst(13, fEaFiltered);
+    dbg_tst(14, fEbFiltered);
     dbg_tst(17, fZa);
     dbg_tst(18, fZb);
 
