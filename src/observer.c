@@ -1,6 +1,7 @@
 #include "ACMSim.h"
 #include "observer.h"
 #include "motor.h"
+#include "tools.h"
 
 #if MACHINE_TYPE == INDUCTION_MACHINE
 struct InductionMachine im;
@@ -127,7 +128,20 @@ void ob_init()
     ob.eemf_al = 0.0;
     ob.eemf_be = 0.0;
 }
-void observation()
+static float yold[2] = {0, 0};
+static float xold[2] = {0, 0};
+
+//a(1)* y(n)= b(1)* x(n)+ b(2)* x(n - 1)+…+ b(nb + 1)* x(n-nb)-a(2)* y(n - 1)-…-a(na + 1)* y(n-na)
+float observation(float fiq)
 {
+    float ftemp[11];
+    float fiqnew;
+    fiqnew = 0.13672874 * fiq - 0.13672874 * xold[0] + 1.55753652 * yold[0] - 0.72654253 * yold[1];
+    dbg_tst(24, fiqnew);
+    yold[1] = yold[0];
+    yold[0] = fiqnew;
+    xold[0] = xold[1];
+    xold[1] = fiq;
+    return fiqnew;
 }
 #endif

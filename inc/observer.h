@@ -125,6 +125,6 @@ extern struct SynchronousMachine sm;
 
 void acm_init();
 void ob_init();
-void observation();
+float observation(float fiq);
 
 #endif

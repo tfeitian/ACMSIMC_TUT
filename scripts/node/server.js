@@ -65,6 +65,23 @@ var refresh = function () {
         })
     });
 }
+
+var openexplore = function () {
+    var cmd = 'start "%ProgramFiles%\Internet Explorer\iexplore.exe"'
+    let child_process = require('child_process'),
+        url = 'http://' + "localhost:3000";
+
+    if (process.platform == 'win32') {
+        cmd = 'start "%ProgramFiles%\Google\Chrome\Application\chrome.exe"';
+    } else if (process.platform == 'linux') {
+        cmd = 'xdg-open';
+    } else if (process.platform == 'darwin') {
+        cmd = 'open';
+    }
+    child_process.exec(`${cmd} "${url}"`);
+    console.log("Opening" + cmd);
+}
+var timer = null;
 fs.watch('D:\\work\\sim\\ACMSIMC_TUT\\build\\algorithm.dat', function (curr, prev) {
     if (Date.parse(prev.ctime) == 0) {
         console.log("文件被创建");
@@ -72,10 +89,17 @@ fs.watch('D:\\work\\sim\\ACMSIMC_TUT\\build\\algorithm.dat', function (curr, pre
         console.log("文件被删除");
     } else if (Date.parse(curr.mtime) != Date.parse(prev.mtime)) {
         console.log("文件被修改");
-        refresh();
+        if (timer === null) {
+            timer = setTimeout(function () {
+                refresh();
+                openexplore();
+                timer = null;
+            }, 5000);
+        }
     }
 });
 
 if (xAxis.length == 0) {
     refresh();
+    openexplore();
 }

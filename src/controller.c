@@ -2,6 +2,8 @@
 #include "controller.h"
 #include "observer.h"
 #include "motor.h"
+#include "math.h"
+#include "tools.h"
 /* PI Control
  * */
 static double PI(struct PI_Reg *r, double err)
@@ -202,6 +204,16 @@ void control(double speed_cmd, double speed_cmd_dot)
 }
 
 #elif MACHINE_TYPE == SYNCHRONOUS_MACHINE
+static float Vinj = 100;
+static float whfi = 500 * 2 * M_PI;
+static float theta_hfi = 0;
+
+static float HFI_Voltage(float dtime)
+{
+    theta_hfi += whfi * dtime;
+
+    return Vinj * sin(theta_hfi);
+}
 /* Initialization */
 struct ControllerForExperiment CTRL;
 void CTRL_init()
@@ -272,6 +284,9 @@ void CTRL_init()
 
     printf("Kp_cur=%g, Ki_cur=%g\n", CTRL.pi_iMs.Kp, CTRL.pi_iMs.Ki);
 }
+
+float tmpold = 0;
+
 void control(double speed_cmd, double speed_cmd_dot)
 {
 // Input 1 is feedback: estimated speed or measured speed
@@ -289,7 +304,7 @@ void control(double speed_cmd, double speed_cmd_dot)
 #if SENSORLESS_CONTROL
     getch("Not Implemented");
 #else
-    CTRL.theta_M = sm.theta_d;
+    CTRL.theta_M = sm.theta_d + 8 * M_PI / 180.0f;
 #endif
 
 #if CONTROL_STRATEGY == NULL_D_AXIS_CURRENT_CONTROL
@@ -320,13 +335,22 @@ void control(double speed_cmd, double speed_cmd_dot)
     CTRL.iMs = AB2M(CTRL.ial_fb, CTRL.ibe_fb, CTRL.cosT, CTRL.sinT);
     CTRL.iTs = AB2T(CTRL.ial_fb, CTRL.ibe_fb, CTRL.cosT, CTRL.sinT);
 
+    float a = 0.028;
+    float c = observation(CTRL.iTs);
+    float b = c * -1 * sin(theta_hfi);
+    float tmp = b * a + (1 - a) * tmpold; //Cut frequency cal = a/(2*pi*ts)
+    tmpold = tmp;
+    dbg_tst(25, tmp);
+    dbg_tst(26, b);
+    dbg_tst(27, c);
+    dbg_tst(28, CTRL.iTs);
     // Voltage command in M-T frame
     double vM, vT;
     vM = -PI(&CTRL.pi_iMs, CTRL.iMs - CTRL.iMs_cmd);
     vT = -PI(&CTRL.pi_iTs, CTRL.iTs - CTRL.iTs_cmd);
 
     // Current loop decoupling (skipped for now)
-    CTRL.uMs_cmd = vM;
+    CTRL.uMs_cmd = vM + HFI_Voltage(TS);
     CTRL.uTs_cmd = vT;
 
     // Voltage command in alpha-beta frame

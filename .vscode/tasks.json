@@ -1,7 +1,6 @@
 {
   "version": "2.0.0",
-  "tasks": [
-    {
+  "tasks": [{
       "label": "build exe",
       "command": "make",
       "options": {
@@ -47,7 +46,8 @@
       "label": "Build and Run",
       "dependsOn": [
         "build exe",
-        "run"
+        "run",
+        "start server"
       ],
       "dependsOrder": "sequence",
       "group": {
