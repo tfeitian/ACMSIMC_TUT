@@ -132,11 +132,16 @@ static float yold[2] = {0, 0};
 static float xold[2] = {0, 0};
 
 //a(1)* y(n)= b(1)* x(n)+ b(2)* x(n - 1)+…+ b(nb + 1)* x(n-nb)-a(2)* y(n - 1)-…-a(na + 1)* y(n-na)
+static float b_coef[3] = {0.004714, 0, -0.004714};
+static float a_coef[3] = {1, -1.609, 0.9906};
+
 float observation(float fiq)
 {
     float ftemp[11];
     float fiqnew;
-    fiqnew = 0.13672874 * fiq - 0.13672874 * xold[0] + 1.55753652 * yold[0] - 0.72654253 * yold[1];
+    fiqnew = 0.13672874 * fiq - 0.13672874 * xold[0] + 1.55753652 * yold[0] - 0.72654253 * yold[1]; //Butt band pass for 500Hz
+    fiqnew = 0.004714 * fiq - 0.004714 * xold[0] + 1.609 * yold[0] - 0.9906 * yold[1];              //Cheeby band pass for 800Hz
+    fiqnew = b_coef[0] * fiq + b_coef[1] * xold[0] + b_coef[2] * xold[1] - a_coef[1] * yold[0] - a_coef[2] * yold[1];
     dbg_tst(24, fiqnew);
     yold[1] = yold[0];
     yold[0] = fiqnew;

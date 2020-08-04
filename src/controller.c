@@ -205,7 +205,7 @@ void control(double speed_cmd, double speed_cmd_dot)
 
 #elif MACHINE_TYPE == SYNCHRONOUS_MACHINE
 static float Vinj = 100;
-static float whfi = 500 * 2 * M_PI;
+static float whfi = 800 * 2 * M_PI;
 static float theta_hfi = 0;
 
 static float HFI_Voltage(float dtime)
@@ -304,7 +304,7 @@ void control(double speed_cmd, double speed_cmd_dot)
 #if SENSORLESS_CONTROL
     getch("Not Implemented");
 #else
-    CTRL.theta_M = sm.theta_d + 8 * M_PI / 180.0f;
+    CTRL.theta_M = sm.theta_d + param * M_PI / 180.0f;
 #endif
 
 #if CONTROL_STRATEGY == NULL_D_AXIS_CURRENT_CONTROL
@@ -335,7 +335,7 @@ void control(double speed_cmd, double speed_cmd_dot)
     CTRL.iMs = AB2M(CTRL.ial_fb, CTRL.ibe_fb, CTRL.cosT, CTRL.sinT);
     CTRL.iTs = AB2T(CTRL.ial_fb, CTRL.ibe_fb, CTRL.cosT, CTRL.sinT);
 
-    float a = 0.028;
+    float a = 0.0028;
     float c = observation(CTRL.iTs);
     float b = c * -1 * sin(theta_hfi);
     float tmp = b * a + (1 - a) * tmpold; //Cut frequency cal = a/(2*pi*ts)

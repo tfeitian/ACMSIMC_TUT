@@ -8,11 +8,14 @@
 #include "userdefine.h"
 
 static float g_fTest[20];
+int param = 0;
 
-int main()
+int main(int argc, char *argv[])
 {
     printf("NUMBER_OF_LINES: %d\n\n", NUMBER_OF_LINES);
 
+    param = atoi(argv[1]);
+    printf("Parameter is %d.\n", param);
     /* Initialization */
     Machine_init();
     CTRL_init();

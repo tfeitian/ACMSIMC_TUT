@@ -131,7 +131,7 @@ void Machine_init()
     // double motorData[5] = {0.45, 4.15, 16.74, 0.504 / 13.5 * 2 * 1000, 2}; //Origin motor data
     double motorData[5] = {7.6, 75, 75, 150, 5}; //138mm
     ACM.R = motorData[0];
-    ACM.Ld = motorData[1] * 1e-3 * 1.15;
+    ACM.Ld = motorData[1] * 1e-3 * 1.2;
     ACM.Lq = motorData[2] * 1e-3;
     ACM.Bemf = motorData[3];
     //0.3375; // = backemf_rms@1000rpm/1000/pole pairs*13.5

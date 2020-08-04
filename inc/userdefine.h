@@ -30,4 +30,5 @@
 #define Uint32 unsigned long int
 #define Uint16 unsigned int
 
+extern int param;
 #endif // !USER_DEFINIE_H
