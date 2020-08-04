@@ -42,13 +42,21 @@ def plot_response(fs, w, h, title=""):
 
 
 def buff():
-    b, a = signal.butter(1, [0.100, 0.200], 'bandpass', analog=False)
+    b, a = signal.butter(1, [0.170, 0.300], 'bandpass', analog=False)
     w, h = signal.freqz(b, a)
     plot_response(8000, w, h, str([b, a]))
     print(b, a)
     b, a = signal.butter(3, 0.5, 'low', analog=True)
     w, h = signal.freqs(b, a)
     plot_response(8000, w, h)
+    print(b, a)
+
+
+def iir():
+    b, a = signal.iirdesign([700/4000, 900/4000], [2/40, 14/40], 0.1,
+                            60.0, ftype="cheby2", fs=8000)
+    w, h = signal.freqz(b, a)
+    plot_response(8000, w, h, str([b, a]))
     print(b, a)
 
 
@@ -67,7 +75,7 @@ if __name__ == "__main__":
     plot_response(fs, w, h, "Band-pass Filter" + a)
     buff()
 
-    b = [0.028]
+    b = [0.0028]
     a = [1, b[0] - 1]
     w, h = signal.freqz(b, a)
     plot_response(8000, w, h, str([b, a]))
