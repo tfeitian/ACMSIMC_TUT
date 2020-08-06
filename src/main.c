@@ -6,6 +6,7 @@
 #include "motor.h"
 #include "inverter.h"
 #include "userdefine.h"
+#include "ramp.h"
 
 static float g_fTest[20];
 float param = 60;
@@ -90,7 +91,7 @@ int main(int argc, char *argv[])
 
             write_data_to_file(fw);
 
-            control(rpm_cmd, 0);
+            control(ramp(rpm_cmd, 2, TS), 0);
         }
 
         inverter_model(CTRL.ual, CTRL.ube, sm.theta_d, &ud, &uq);

@@ -16,7 +16,8 @@ src/log.c \
 src/socket.c \
 src/cJSON.c \
 src/inverter.c \
-src/motor.c
+src/motor.c \
+src/ramp.c
 
 CC = $(PREFIX)gcc
 
