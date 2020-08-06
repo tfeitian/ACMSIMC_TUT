@@ -48,8 +48,8 @@ def show():
         plt.plot(i)
     plt.show()
 
-def seq():
-    for i in np.arange(60, 70, 1):
+def seq(x, y, t = 1):
+    for i in np.arange(x, y, t):
         run(i)
         dd = read()
         a.append(dd[25])

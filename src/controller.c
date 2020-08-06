@@ -235,14 +235,17 @@ void control(double speed_cmd, double speed_cmd_dot)
 }
 
 #elif MACHINE_TYPE == SYNCHRONOUS_MACHINE
-static float Vinj = 130;
-static float whfi = 800 * 2 * M_PI;
-static float theta_hfi = 0;
+static double Vinj = 150;
+static double whfi = 800 * 2 * M_PI;
+static double theta_hfi = 0;
 
-static float HFI_Voltage(float dtime)
+static double HFI_Voltage(float dtime)
 {
     theta_hfi += whfi * dtime;
-
+    theta_hfi = rounddegree(theta_hfi);
+    dbg_tst(14, theta_hfi);
+    dbg_tst(15, sin(theta_hfi));
+    dbg_tst(16, whfi * dtime);
     return Vinj * sin(theta_hfi);
 }
 /* Initialization */
@@ -343,13 +346,15 @@ void control(double speed_cmd, double speed_cmd_dot)
 #if SENSORLESS_CONTROL
     getch("Not Implemented");
 #else
-    // CTRL.theta_M = sm.theta_d + param * M_PI / 180.0f;
+    // CTRL.theta_M = sm.theta_d;
+    //  +param *M_PI / 180.0f;
     CTRL.theta_M = PI_Degree(&CTRL.pi_HFI, tmp);
     dbg_tst(29, CTRL.theta_M);
     float xx = rounddegree(CTRL.theta_M);
     // CTRL.theta_M = xx;
     // CTRL.pi_HFI.i_state = xx;
     dbg_tst(10, xx);
+    dbg_tst(11, speed_cmd);
 #endif
 
 #if CONTROL_STRATEGY == NULL_D_AXIS_CURRENT_CONTROL
@@ -394,10 +399,13 @@ void control(double speed_cmd, double speed_cmd_dot)
     vM = -PI(&CTRL.pi_iMs, CTRL.iMs - CTRL.iMs_cmd);
     vT = -PI(&CTRL.pi_iTs, CTRL.iTs - CTRL.iTs_cmd);
 
+    float fHFI = HFI_Voltage(TS);
+    dbg_tst(12, fHFI);
     // Current loop decoupling (skipped for now)
-    CTRL.uMs_cmd = vM + HFI_Voltage(TS);
+    CTRL.uMs_cmd = vM + fHFI;
     CTRL.uTs_cmd = vT;
 
+    dbg_tst(13, CTRL.uMs_cmd);
     // Voltage command in alpha-beta frame
     CTRL.ual = MT2A(CTRL.uMs_cmd, CTRL.uTs_cmd, CTRL.cosT, CTRL.sinT);
     CTRL.ube = MT2B(CTRL.uMs_cmd, CTRL.uTs_cmd, CTRL.cosT, CTRL.sinT);
