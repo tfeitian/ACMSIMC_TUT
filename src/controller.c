@@ -318,9 +318,9 @@ void CTRL_init()
     CTRL.pi_iTs.i_limit = 650; // unit: Volt, 350V->max 1300rpm
 
     printf("Kp_cur=%g, Ki_cur=%g\n", CTRL.pi_iMs.Kp, CTRL.pi_iMs.Ki);
-    CTRL.pi_HFI.Kp = 500;
+    CTRL.pi_HFI.Kp = 700;
     CTRL.pi_HFI.Ti = 0.08;
-    CTRL.pi_HFI.Ki = 2.5;
+    CTRL.pi_HFI.Ki = 3.2;
     CTRL.pi_HFI.i_state = 0.0;
     CTRL.pi_HFI.i_limit = 2 * M_PI;
     // 28*M_PI / 180; // unit: Volt, 350V->max 1300rpm
@@ -348,6 +348,7 @@ void control(double speed_cmd, double speed_cmd_dot)
 #else
     // CTRL.theta_M = sm.theta_d;
     //  +param *M_PI / 180.0f;
+    CTRL.pi_HFI.Ki = 0.8 + 0.034 * (CTRL.omg_fb);
     CTRL.theta_M = PI_Degree(&CTRL.pi_HFI, tmp);
     dbg_tst(29, CTRL.theta_M);
     float xx = rounddegree(CTRL.theta_M);

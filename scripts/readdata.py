@@ -41,6 +41,7 @@ def run(param):
     os.chdir(path+r"\build")
     exefile = r"main.exe"
     os.system(exefile + ' ' + str(param))
+    time.sleep(3)
 
 def show():
     import matplotlib.pyplot as plt

@@ -8,7 +8,7 @@
 #include "userdefine.h"
 
 static float g_fTest[20];
-int param = 60;
+float param = 60;
 
 void write_input(int argc, char *argv[])
 {
@@ -16,7 +16,7 @@ void write_input(int argc, char *argv[])
     fw = fopen("input.dat", "w");
     for (int i = 1; i < argc; i++)
     {
-        fprintf(fw, "%d ", atoi(argv[i]));
+        fprintf(fw, "%f ", atof(argv[i]));
     }
     fclose(fw);
 }
@@ -24,8 +24,8 @@ int main(int argc, char *argv[])
 {
     printf("NUMBER_OF_LINES: %d\n\n", NUMBER_OF_LINES);
 
-    param = atoi(argv[1]);
-    printf("Parameter is %d.\n", param);
+    param = atof(argv[1]);
+    printf("Parameter is %f.\n", param);
     write_input(argc, argv);
     /* Initialization */
     Machine_init();
