@@ -16,6 +16,7 @@ var f = length => Array.from({
 
 var series = [];
 var xAxis = [];
+var title = null;
 
 router.get('/', async (ctx) => {
     // var xAxis = ["衬衫", "羊毛衫", "雪纺衫", "裤子", "高跟鞋", "袜子"];
@@ -23,7 +24,8 @@ router.get('/', async (ctx) => {
 
     await ctx.render('index', {
         xAxis,
-        series
+        series,
+        title
     });
 
 })
@@ -40,6 +42,13 @@ function ConvertToTable(data, callBack) {
 }
 
 var refresh = function () {
+    fs.readFile('D:\\work\\sim\\ACMSIMC_TUT\\build\\input.dat',
+        function (err, data) {
+            if (err) {
+                return console.error(err);
+            }
+            title = data;
+        });
     fs.readFile('D:\\work\\sim\\ACMSIMC_TUT\\build\\algorithm.dat', function (err, data) {
         if (err) {
             return console.error(err);
@@ -50,7 +59,7 @@ var refresh = function () {
         ConvertToTable(data, function (table) {
             // console.log(table);
             var length = table.length;
-            var step = 4;
+            var step = 4; //For extracting
             series = [];
             xAxis = f(length / step);
             for (j = 0; j < table[1].length; j++) {

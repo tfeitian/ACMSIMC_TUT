@@ -8,14 +8,25 @@
 #include "userdefine.h"
 
 static float g_fTest[20];
-int param = 0;
+int param = 60;
 
+void write_input(int argc, char *argv[])
+{
+    FILE *fw;
+    fw = fopen("input.dat", "w");
+    for (int i = 1; i < argc; i++)
+    {
+        fprintf(fw, "%d ", atoi(argv[i]));
+    }
+    fclose(fw);
+}
 int main(int argc, char *argv[])
 {
     printf("NUMBER_OF_LINES: %d\n\n", NUMBER_OF_LINES);
 
     param = atoi(argv[1]);
     printf("Parameter is %d.\n", param);
+    write_input(argc, argv);
     /* Initialization */
     Machine_init();
     CTRL_init();
@@ -45,11 +56,11 @@ int main(int argc, char *argv[])
         }
         else if (timebase > 5)
         {
-            rpm_cmd = 52;
+            // rpm_cmd = 52;
         }
         else if (timebase > 2.0)
         {
-            rpm_cmd = 50;
+            rpm_cmd = param;
         }
         else
         {

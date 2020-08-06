@@ -35,8 +35,10 @@ def read():
 
 def run(param):
     import os
-    path = r"D:\work\sim\ACMSIMC_TUT\build"
+    path = r"D:\work\sim\ACMSIMC_TUT"
     os.chdir(path)
+    os.system("make")
+    os.chdir(path+r"\build")
     exefile = r"main.exe"
     os.system(exefile + ' ' + str(param))
 
@@ -47,7 +49,7 @@ def show():
     plt.show()
 
 def seq():
-    for i in np.arange(-180, 180, 20):
+    for i in np.arange(60, 70, 1):
         run(i)
         dd = read()
         a.append(dd[25])

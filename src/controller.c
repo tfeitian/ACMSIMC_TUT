@@ -235,7 +235,7 @@ void control(double speed_cmd, double speed_cmd_dot)
 }
 
 #elif MACHINE_TYPE == SYNCHRONOUS_MACHINE
-static float Vinj = 100;
+static float Vinj = 130;
 static float whfi = 800 * 2 * M_PI;
 static float theta_hfi = 0;
 
