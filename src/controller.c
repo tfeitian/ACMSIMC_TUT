@@ -235,7 +235,7 @@ void control(double speed_cmd, double speed_cmd_dot)
 }
 
 #elif MACHINE_TYPE == SYNCHRONOUS_MACHINE
-static double Vinj = 150;
+static double Vinj = 100;
 static double whfi = 800 * 2 * M_PI;
 static double theta_hfi = 0;
 
@@ -320,7 +320,7 @@ void CTRL_init()
     printf("Kp_cur=%g, Ki_cur=%g\n", CTRL.pi_iMs.Kp, CTRL.pi_iMs.Ki);
     CTRL.pi_HFI.Kp = 500;
     CTRL.pi_HFI.Ti = 0.08;
-    CTRL.pi_HFI.Ki = 0.8;
+    CTRL.pi_HFI.Ki = 2.5;
     CTRL.pi_HFI.i_state = 0.0;
     CTRL.pi_HFI.i_limit = 2 * M_PI;
     // 28*M_PI / 180; // unit: Volt, 350V->max 1300rpm
