@@ -1,4 +1,5 @@
 import csv
+import numpy as np
 
 a = []
 
@@ -46,7 +47,7 @@ def show():
     plt.show()
 
 def seq():
-    for i in range(-10, 10):
+    for i in np.arange(-180, 180, 20):
         run(i)
         dd = read()
         a.append(dd[25])

@@ -158,7 +158,8 @@ void Machine_init()
     ACM.ual = 0.0;
     ACM.ube = 0.0;
 
-    ACM.theta_d = 0.0;
+    ACM.theta_d = 30.0 * M_PI / 180.0f;
+    xx[3] = ACM.theta_d;
 #endif
 }
 

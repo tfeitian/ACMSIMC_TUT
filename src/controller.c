@@ -1,33 +1,60 @@
-#include "ACMSim.h"
 #include "controller.h"
-#include "observer.h"
-#include "motor.h"
+#include "ACMSim.h"
 #include "math.h"
+#include "motor.h"
+#include "observer.h"
 #include "tools.h"
+
 /* PI Control
  * */
 static double PI(struct PI_Reg *r, double err)
 {
-#define I_STATE r->i_state
-#define I_LIMIT r->i_limit
     double output;
-    I_STATE += err * r->Ki; // 积分
-    if (I_STATE > I_LIMIT)  // 添加积分饱和特性
-        I_STATE = I_LIMIT;
-    else if (I_STATE < -I_LIMIT)
-        I_STATE = -I_LIMIT;
+    r->i_state += err * r->Ki;   // 积分
+    if (r->i_state > r->i_limit) // 添加积分饱和特性
+        r->i_state = r->i_limit;
+    else if (r->i_state < -r->i_limit)
+        r->i_state = -r->i_limit;
 
-    output = I_STATE + err * r->Kp;
+    output = r->i_state + err * r->Kp;
 
-    if (output > I_LIMIT)
-        output = I_LIMIT;
-    else if (output < -I_LIMIT)
-        output = -I_LIMIT;
+    if (output > r->i_limit)
+        output = r->i_limit;
+    else if (output < -r->i_limit)
+        output = -r->i_limit;
     return output;
-#undef I_STATE
-#undef I_LIMIT
 }
+float rounddegree(float xx)
+{
+    if (xx > M_PI)
+    {
+        xx -= 2 * M_PI;
+    }
+    else if (xx < -M_PI)
+    {
+        xx += 2 * M_PI; // 反转！
+    }
+    return xx;
+}
+static double PI_Degree(struct PI_Reg *r, double err)
+{
+    double output;
+    r->i_state += err * r->Ki;   // 积分
+    if (r->i_state > r->i_limit) // 添加积分饱和特性
+        r->i_state = r->i_limit;
+    else if (r->i_state < -r->i_limit)
+        r->i_state = -r->i_limit;
 
+    output = r->i_state + err * r->Kp;
+
+    /*     if (output > r->i_limit)
+        output = r->i_limit;
+    else if (output < -r->i_limit)
+        output = -r->i_limit; */
+    output = rounddegree(output);
+    r->i_state = output - err * r->Kp;
+    return output;
+}
 #if MACHINE_TYPE == INDUCTION_MACHINE
 /* Initialization */
 struct ControllerForExperiment CTRL;
@@ -77,7 +104,8 @@ void CTRL_init()
     // ver. IEMDC
     CTRL.pi_speed.Kp = 0.5;
     CTRL.pi_speed.Ti = 5;
-    CTRL.pi_speed.Ki = (CTRL.pi_speed.Kp * 4.77) / CTRL.pi_speed.Ti * (TS * VC_LOOP_CEILING * DOWN_FREQ_EXE_INVERSE);
+    CTRL.pi_speed.Ki = (CTRL.pi_speed.Kp * 4.77) / CTRL.pi_speed.Ti *
+                       (TS * VC_LOOP_CEILING * DOWN_FREQ_EXE_INVERSE);
     CTRL.pi_speed.i_state = 0.0;
     CTRL.pi_speed.i_limit = 8;
 
@@ -87,7 +115,7 @@ void CTRL_init()
     CTRL.pi_iMs.Ti = 0.08;
     CTRL.pi_iMs.Ki = CTRL.pi_iMs.Kp / CTRL.pi_iMs.Ti * TS; // =0.025
     CTRL.pi_iMs.i_state = 0.0;
-    CTRL.pi_iMs.i_limit = 350; //350.0; // unit: Volt
+    CTRL.pi_iMs.i_limit = 350; // 350.0; // unit: Volt
 
     CTRL.pi_iTs.Kp = 15;
     CTRL.pi_iTs.Ti = 0.08;
@@ -101,7 +129,7 @@ void control(double speed_cmd, double speed_cmd_dot)
 {
 // OPEN LOOP CONTROL
 #if CONTROL_STRATEGY == VVVF_CONTROL
-#define VF_RATIO 18  //18.0 // 8 ~ 18 shows saturated phenomenon
+#define VF_RATIO 18  // 18.0 // 8 ~ 18 shows saturated phenomenon
     double freq = 2; // 0.15 ~ 0.5 ~ 2 （0.1时电压李萨茹就变成一个圆了）
     double volt = VF_RATIO * freq;
     CTRL.ual = volt * cos(2 * M_PI * freq * CTRL.timebase);
@@ -133,12 +161,14 @@ void control(double speed_cmd, double speed_cmd_dot)
 
     // Flux (linkage) command
     CTRL.rotor_flux_cmd = 0.5; // f(speed, dc bus voltage, last torque current command)
-        // 1. speed is compared with the base speed to decide flux weakening or not
-        // 2. dc bus voltage is required for certain application
-        // 3. last torque current command is required for loss minimization
+                               // 1. speed is compared with the base speed to decide flux weakening
+                               // or not
+                               // 2. dc bus voltage is required for certain application
+                               // 3. last torque current command is required for loss minimization
 
     // M-axis current command
-    CTRL.iMs_cmd = CTRL.rotor_flux_cmd * CTRL.Lmu_inv + M1 * OMG1 * cos(OMG1 * CTRL.timebase) / CTRL.rreq;
+    CTRL.iMs_cmd = CTRL.rotor_flux_cmd * CTRL.Lmu_inv +
+                   M1 * OMG1 * cos(OMG1 * CTRL.timebase) / CTRL.rreq;
     // printf("%g, %g, %g\n", CTRL.Lmu_inv, CTRL.iMs_cmd, CTRL.iTs_cmd);
 
     // T-axis current command
@@ -154,7 +184,8 @@ void control(double speed_cmd, double speed_cmd_dot)
 
 #if CONTROL_STRATEGY == DFOC
     // feedback field orientation
-    double modulus = sqrt(CTRL.psi_mu_al_fb * CTRL.psi_mu_al_fb + CTRL.psi_mu_be_fb * CTRL.psi_mu_be_fb);
+    double modulus = sqrt(CTRL.psi_mu_al_fb * CTRL.psi_mu_al_fb +
+                          CTRL.psi_mu_be_fb * CTRL.psi_mu_be_fb);
     if (modulus < 1e-3)
     {
         CTRL.cosT = 0;
@@ -264,7 +295,8 @@ void CTRL_init()
     // ver. IEMDC
     CTRL.pi_speed.Kp = 0.5;
     CTRL.pi_speed.Ti = 5;
-    CTRL.pi_speed.Ki = (CTRL.pi_speed.Kp * 4.77) / CTRL.pi_speed.Ti * (TS * VC_LOOP_CEILING * DOWN_FREQ_EXE_INVERSE);
+    CTRL.pi_speed.Ki = (CTRL.pi_speed.Kp * 4.77) / CTRL.pi_speed.Ti *
+                       (TS * VC_LOOP_CEILING * DOWN_FREQ_EXE_INVERSE);
     CTRL.pi_speed.i_state = 0.0;
     CTRL.pi_speed.i_limit = 8;
 
@@ -274,7 +306,7 @@ void CTRL_init()
     CTRL.pi_iMs.Ti = 0.08;
     CTRL.pi_iMs.Ki = CTRL.pi_iMs.Kp / CTRL.pi_iMs.Ti * TS; // =0.025
     CTRL.pi_iMs.i_state = 0.0;
-    CTRL.pi_iMs.i_limit = 350; //350.0; // unit: Volt
+    CTRL.pi_iMs.i_limit = 350; // 350.0; // unit: Volt
 
     CTRL.pi_iTs.Kp = 15;
     CTRL.pi_iTs.Ti = 0.08;
@@ -283,9 +315,16 @@ void CTRL_init()
     CTRL.pi_iTs.i_limit = 650; // unit: Volt, 350V->max 1300rpm
 
     printf("Kp_cur=%g, Ki_cur=%g\n", CTRL.pi_iMs.Kp, CTRL.pi_iMs.Ki);
+    CTRL.pi_HFI.Kp = 500;
+    CTRL.pi_HFI.Ti = 0.08;
+    CTRL.pi_HFI.Ki = 0.8;
+    CTRL.pi_HFI.i_state = 0.0;
+    CTRL.pi_HFI.i_limit = 2 * M_PI;
+    // 28*M_PI / 180; // unit: Volt, 350V->max 1300rpm
 }
 
 float tmpold = 0;
+float tmp;
 
 void control(double speed_cmd, double speed_cmd_dot)
 {
@@ -304,7 +343,13 @@ void control(double speed_cmd, double speed_cmd_dot)
 #if SENSORLESS_CONTROL
     getch("Not Implemented");
 #else
-    CTRL.theta_M = sm.theta_d + param * M_PI / 180.0f;
+    // CTRL.theta_M = sm.theta_d + param * M_PI / 180.0f;
+    CTRL.theta_M = PI_Degree(&CTRL.pi_HFI, tmp);
+    dbg_tst(29, CTRL.theta_M);
+    float xx = rounddegree(CTRL.theta_M);
+    // CTRL.theta_M = xx;
+    // CTRL.pi_HFI.i_state = xx;
+    dbg_tst(10, xx);
 #endif
 
 #if CONTROL_STRATEGY == NULL_D_AXIS_CURRENT_CONTROL
@@ -338,7 +383,7 @@ void control(double speed_cmd, double speed_cmd_dot)
     float a = 0.0028;
     float c = observation(CTRL.iTs);
     float b = c * -1 * sin(theta_hfi);
-    float tmp = b * a + (1 - a) * tmpold; //Cut frequency cal = a/(2*pi*ts)
+    tmp = b * a + (1 - a) * tmpold; // Cut frequency cal = a/(2*pi*ts)
     tmpold = tmp;
     dbg_tst(25, tmp);
     dbg_tst(26, b);

@@ -2,6 +2,8 @@
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
 
+#include "ACMSim.h"
+
 #define VC_LOOP_CEILING 40
 
 struct PI_Reg
@@ -113,6 +115,7 @@ struct ControllerForExperiment
     struct PI_Reg pi_speed;
     struct PI_Reg pi_iMs;
     struct PI_Reg pi_iTs;
+    struct PI_Reg pi_HFI;
 };
 #endif
 extern struct ControllerForExperiment CTRL;

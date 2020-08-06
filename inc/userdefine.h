@@ -31,4 +31,9 @@
 #define Uint16 unsigned int
 
 extern int param;
+
+#define MAX(a, b) ((a > b ? a : b))
+#define MIN(a, b) ((a > b ? b : a))
+#define LIMIT(x, a, b) (MAX(MIN(x, a), b))
+
 #endif // !USER_DEFINIE_H

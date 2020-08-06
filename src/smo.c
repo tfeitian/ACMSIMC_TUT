@@ -105,7 +105,7 @@ float smo_vCalc(float fIa, float fIb, float fUa, float fUb, float fOmega)
     fEbFiltered = fEbFiltered + fKslf * (fEb - fEbFiltered);
 
     float ftheta0 = atan2f(-fEaFiltered, fEbFiltered);
-    dbg_tst(10, fEstIa);
+    /*     dbg_tst(10, fEstIa);
     dbg_tst(11, fEstIb);
     dbg_tst(15, fIa);
     dbg_tst(16, fIb);
@@ -113,7 +113,7 @@ float smo_vCalc(float fIa, float fIb, float fUa, float fUb, float fOmega)
     dbg_tst(13, fEaFiltered);
     dbg_tst(14, fEbFiltered);
     dbg_tst(17, fZa);
-    dbg_tst(18, fZb);
+    dbg_tst(18, fZb); */
 
     return ftheta;
 }

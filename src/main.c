@@ -39,18 +39,22 @@ int main(int argc, char *argv[])
     for (_ = 0; _ < NUMBER_OF_LINES; ++_)
     {
         /* Command and Load Torque */
-        if (timebase > 5)
+        if (timebase > 6)
         {
-            rpm_cmd = 250;
+            // rpm_cmd = 80;
         }
-        else if (timebase > 2.5)
+        else if (timebase > 5)
         {
-            ACM.Tload = 5;
+            rpm_cmd = 52;
+        }
+        else if (timebase > 2.0)
+        {
+            rpm_cmd = 50;
         }
         else
         {
-            rpm_cmd = 50;
-            ACM.Tload = 1;
+            ACM.Tload = 5;
+            // ACM.Tload = 1;
         }
 
         /* Simulated ACM */
@@ -119,7 +123,7 @@ void write_data_to_file(FILE *fw)
                     CTRL.uMs_cmd, CTRL.uTs_cmd, CTRL.iMs_cmd, CTRL.iMs, CTRL.iTs_cmd, CTRL.iTs,
                     ob.psi_mu_al, ob.tajima.omg * RAD_PER_SEC_2_RPM(ACM.npp));
 #elif MACHINE_TYPE == SYNCHRONOUS_MACHINE
-            fprintf(fw, "%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g\n",
+            fprintf(fw, "%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g\n",
                     ACM.id, ACM.iq, ACM.omg, ACM.theta_d,
                     ACM.Tem, CTRL.uTs_cmd, CTRL.iMs_cmd, CTRL.iMs,
                     CTRL.iTs_cmd, CTRL.iTs, g_fTest[0],
@@ -129,7 +133,7 @@ void write_data_to_file(FILE *fw)
                     g_fTest[10], g_fTest[11], g_fTest[12],
                     g_fTest[13], g_fTest[14], g_fTest[15],
                     g_fTest[16], g_fTest[17], g_fTest[18],
-                    g_fTest[19], g_fTest[20]);
+                    g_fTest[19], g_fTest[20], g_fTest[21]);
 #endif
             /*             dbglog("ACM.x[0]", ACM.x[0]);
             dbglog("ACM.x[1]", ACM.x[1]);
