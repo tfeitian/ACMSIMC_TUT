@@ -55,6 +55,9 @@ struct SynchronousMachineSimulated
     double id;
     double iq;
 
+    double phid;
+    double phiq;
+
     double ial;
     double ibe;
 

@@ -1,0 +1,7 @@
+1. Degree near PI check;
+2. Delta theta PID design;
+3. SMPM satuation simulate;
+4. SMPM HFI check;
+5. Estimated degree delay compensation;
+6. Use dtheta instead of theta for PID;
+7. Change fsample to 16kHz(The filters need to be re-designed);  

@@ -158,9 +158,18 @@ void Machine_init()
     ACM.ual = 0.0;
     ACM.ube = 0.0;
 
-    ACM.theta_d = 30.0 * M_PI / 180.0f;
+    ACM.theta_d = 10.0 * M_PI / 180.0f;
     xx[3] = ACM.theta_d;
 #endif
+}
+
+double ld_matching(double isd)
+{
+    double coef[4] = {0.1506734, -0.40800866,
+                      -6.12794613,
+                      40.83116883};
+    //a *x * * 2 + b *x + c
+    return (isd * isd * isd * coef[0] + isd * isd * coef[1] + isd * coef[2] + coef[3]) * (ACM.Lq / (40.83 * 1e-3));
 }
 
 int machine_simulation(double ud, double uq)
@@ -188,6 +197,8 @@ int machine_simulation(double ud, double uq)
 
     ACM.id = xx[0];
     ACM.iq = xx[1];
+    ACM.phid = ACM.id * ACM.Ld + ACM.KE;
+    ACM.phiq = ACM.iq * ACM.Lq;
     ACM.ial = MT2A(ACM.id, ACM.iq, cos(ACM.theta_d), sin(ACM.theta_d));
     ACM.ibe = MT2B(ACM.id, ACM.iq, cos(ACM.theta_d), sin(ACM.theta_d));
     ACM.rpm = xx[2] * 60 / (2 * M_PI * ACM.npp);
@@ -195,8 +206,8 @@ int machine_simulation(double ud, double uq)
     ACM.Ea = MT2A(ACM.ud, ACM.uq, cos(ACM.theta_d), sin(ACM.theta_d)) - ACM.R * ACM.ial;
     ACM.Eb = MT2B(ACM.ud, ACM.uq, cos(ACM.theta_d), sin(ACM.theta_d)) - ACM.R * ACM.ibe;
     //  -ACM.Ld *xx;
-    dbg_tst(19, ACM.ud);
-    dbg_tst(20, ACM.uq);
+    dbg_tst(19, ACM.phid);
+    dbg_tst(20, ACM.phiq);
     dbg_tst(21, atan2f(-ACM.Ea, ACM.Eb));
     dbg_tst(22, ACM.id);
     dbg_tst(23, ACM.iq);
