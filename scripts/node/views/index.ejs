@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <!-- 引入 ECharts 文件 -->
-    <script src="https://cdn.bootcss.com/echarts/4.2.1-rc1/echarts.min.js"></script>
+    <script src="echarts.min.js"></script>
     <title><%= title %></title>
     <style type="text/css">
       .picture {
@@ -121,6 +121,8 @@
       }
 
       charts = [];
+      charts.push(showone([17]));
+      charts.push(showone([22, 23]));
       charts.push(showone([19, 20]));
       charts.push(showone([29, 3, 10]));
       charts.push(showone([25]));

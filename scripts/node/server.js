@@ -8,6 +8,7 @@ const fs = require('fs');
 app.use(views(path.join(__dirname, './views'), {
     extension: 'ejs'
 }))
+app.use(require('koa-static')(path.join(__dirname, './views')));
 app.use(router.routes()).use(router.allowedMethods());
 app.listen(3000);
 var f = length => Array.from({
