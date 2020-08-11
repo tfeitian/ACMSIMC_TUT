@@ -21,7 +21,17 @@ static int isNumber(double x)
     // see https://www.johndcook.com/blog/IEEE_exceptions_in_cpp/ cb: https://stackoverflow.com/questions/347920/what-do-1-inf00-1-ind00-and-1-ind-mean
 }
 
-static void rK5_dynamics(double t, double *x, double *fx)
+static double ld_matching(double isd)
+{
+    double coef[4] = {0.1506734, -0.40800866, -6.12794613, 40.83116883};
+    //a *x * * 2 + b *x + c
+    // isd = 0;
+    // return ACM.Lq * 1.2;
+
+    return (isd * isd * isd * coef[0] + isd * isd * coef[1] + isd * coef[2] + coef[3]) * (ACM.Lq / 40.83116883) * 1.05;
+}
+
+static void rK5_dynamics(double t, double *x, double *fx, double ld)
 {
 #if MACHINE_TYPE == INDUCTION_MACHINE
     // electromagnetic model
@@ -37,44 +47,45 @@ static void rK5_dynamics(double t, double *x, double *fx)
 
 #elif MACHINE_TYPE == SYNCHRONOUS_MACHINE
     // electromagnetic model
-    fx[0] = (ACM.ud - ACM.R * x[0] + x[2] * ACM.Lq * x[1]) / ACM.Ld;
-    fx[1] = (ACM.uq - ACM.R * x[1] - x[2] * ACM.Ld * x[0] - x[2] * ACM.KE) / ACM.Lq;
+    fx[0] = (ACM.ud - ACM.R * x[0] + x[2] * ACM.Lq * x[1]) / ld;
+
+    fx[1] = (ACM.uq - ACM.R * x[1] - x[2] * ld * x[0] - x[2] * ACM.KE) / ACM.Lq;
 
     // mechanical model
-    ACM.Tem = ACM.npp * (x[1] * ACM.KE + (ACM.Ld - ACM.Lq) * x[0] * x[1]);
+    ACM.Tem = ACM.npp * (x[1] * ACM.KE + (ld - ACM.Lq) * x[0] * x[1]);
     fx[2] = (ACM.Tem - ACM.Tload) * ACM.mu_m; // elec. angular rotor speed
     fx[3] = x[2];                             // elec. angular rotor position
 #endif
 }
 
-static void rK555_Lin(double t, double *x, double hs)
+static void rK555_Lin(double t, double *x, double hs, double ld)
 {
     double k1[NS], k2[NS], k3[NS], k4[NS], xk[NS];
     double fx[NS];
     int i;
 
-    rK5_dynamics(t, x, fx); // timer.t,
+    rK5_dynamics(t, x, fx, ld); // timer.t,
     for (i = 0; i < NS; ++i)
     {
         k1[i] = fx[i] * hs;
         xk[i] = x[i] + k1[i] * 0.5;
     }
 
-    rK5_dynamics(t, xk, fx); // timer.t+hs/2.,
+    rK5_dynamics(t, xk, fx, ld); // timer.t+hs/2.,
     for (i = 0; i < NS; ++i)
     {
         k2[i] = fx[i] * hs;
         xk[i] = x[i] + k2[i] * 0.5;
     }
 
-    rK5_dynamics(t, xk, fx); // timer.t+hs/2.,
+    rK5_dynamics(t, xk, fx, ld); // timer.t+hs/2.,
     for (i = 0; i < NS; ++i)
     {
         k3[i] = fx[i] * hs;
         xk[i] = x[i] + k3[i];
     }
 
-    rK5_dynamics(t, xk, fx); // timer.t+hs,
+    rK5_dynamics(t, xk, fx, ld); // timer.t+hs,
     for (i = 0; i < NS; ++i)
     {
         k4[i] = fx[i] * hs;
@@ -163,20 +174,11 @@ void Machine_init()
 #endif
 }
 
-double ld_matching(double isd)
-{
-    double coef[4] = {0.1506734, -0.40800866,
-                      -6.12794613,
-                      40.83116883};
-    //a *x * * 2 + b *x + c
-    return (isd * isd * isd * coef[0] + isd * isd * coef[1] + isd * coef[2] + coef[3]) * (ACM.Lq / (40.83 * 1e-3));
-}
-
 int machine_simulation(double ud, double uq)
 {
     ACM.ud = ud;
     ACM.uq = uq;
-    rK555_Lin(0, xx, ACM.Ts);
+    rK555_Lin(0, xx, ACM.Ts, ld_matching(ACM.id));
 
 // API for explicit access
 #if MACHINE_TYPE == INDUCTION_MACHINE
@@ -211,6 +213,8 @@ int machine_simulation(double ud, double uq)
     dbg_tst(21, atan2f(-ACM.Ea, ACM.Eb));
     dbg_tst(22, ACM.id);
     dbg_tst(23, ACM.iq);
+
+    dbg_tst(17, ld_matching(ACM.id));
 #endif
 
     if (isNumber(ACM.rpm))

@@ -14,6 +14,7 @@
 #include "math.h"
 #include "time.h"
 #include "userdefine.h"
+#include "config.h"
 
 #if MACHINE_TYPE == INDUCTION_MACHINE
 #define VVVF_CONTROL 0

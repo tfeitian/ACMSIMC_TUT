@@ -346,10 +346,12 @@ void control(double speed_cmd, double speed_cmd_dot)
 #if SENSORLESS_CONTROL
     getch("Not Implemented");
 #else
-    // CTRL.theta_M = sm.theta_d;
+    CTRL.theta_M = sm.theta_d;
     //  +param *M_PI / 180.0f;
+#if ANGLE_DETECTION_HFI == 1
     CTRL.pi_HFI.Ki = 0.8 + 0.034 * (CTRL.omg_fb);
     CTRL.theta_M = PI_Degree(&CTRL.pi_HFI, tmp);
+#endif
     dbg_tst(29, CTRL.theta_M);
     float xx = rounddegree(CTRL.theta_M);
     // CTRL.theta_M = xx;
@@ -365,7 +367,7 @@ void control(double speed_cmd, double speed_cmd_dot)
 
     // M-axis current command
     CTRL.iMs_cmd = CTRL.rotor_flux_cmd / CTRL.Ld;
-
+    CTRL.iMs_cmd = -MAX(CTRL.iMs_cmd, 3);
     // T-axis current command
     static int vc_count = 0;
     // if (vc_count++ == VC_LOOP_CEILING * DOWN_FREQ_EXE_INVERSE)
