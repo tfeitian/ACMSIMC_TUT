@@ -28,7 +28,7 @@ def li():
 def showfft(data):
     plt.figure()
     nn = len(data)
-    tt = 1/ 8000
+    tt = 1/ 16000
     x = np.linspace(0.0, nn*tt, nn)
     yff = fft(data)
     xff = np.linspace(0.0, 1.0/(2.0*tt), nn//2)

@@ -33,9 +33,9 @@
 #endif
 
 /* How long should I go? */
-#define NUMBER_OF_LINES (75000)
+#define NUMBER_OF_LINES (100000)
 
-#define MACHINE_TS 1.25e-4
+#define MACHINE_TS (1.25e-4 / 2)
 #define MACHINE_TS_INVERSE 8000
 #define DOWN_FREQ_EXE 1
 #define DOWN_FREQ_EXE_INVERSE (1.0 / DOWN_FREQ_EXE)

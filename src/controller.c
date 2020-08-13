@@ -236,7 +236,7 @@ void control(double speed_cmd, double speed_cmd_dot)
 
 #elif MACHINE_TYPE == SYNCHRONOUS_MACHINE
 static double Vinj = 200;
-static double whfi = 800 * 2 * M_PI;
+static double whfi = 400 * 2 * M_PI;
 static double theta_hfi = 0;
 
 static double HFI_Voltage(float dtime)
@@ -315,9 +315,9 @@ void CTRL_init()
     CTRL.pi_iTs.i_limit = 650; // unit: Volt, 350V->max 1300rpm
 
     printf("Kp_cur=%g, Ki_cur=%g\n", CTRL.pi_iMs.Kp, CTRL.pi_iMs.Ki);
-    CTRL.pi_HFI.Kp = 700;
+    CTRL.pi_HFI.Kp = 150;
     CTRL.pi_HFI.Ti = 0.08;
-    CTRL.pi_HFI.Ki = 3.2;
+    CTRL.pi_HFI.Ki = 1.6;
     CTRL.pi_HFI.i_state = 0.0;
     CTRL.pi_HFI.i_limit = 2 * M_PI;
     // 28*M_PI / 180; // unit: Volt, 350V->max 1300rpm
@@ -325,10 +325,10 @@ void CTRL_init()
 
 float tmpold = 0;
 float tmp, isdlowold = 0;
-float isdxold[10];
-float isdyold[10];
-float isqxold[10];
-float isqyold[10];
+float isdxold[10] = {0};
+float isdyold[10] = {0};
+float isqxold[10] = {0};
+float isqyold[10] = {0};
 
 void control(double speed_cmd, double speed_cmd_dot)
 {
@@ -347,14 +347,15 @@ void control(double speed_cmd, double speed_cmd_dot)
 #if SENSORLESS_CONTROL
     getch("Not Implemented");
 #else
-    CTRL.theta_M = sm.theta_d;
+
     //  +param *M_PI / 180.0f;
-#if ANGLE_DETECTION_HFI == 1
-    CTRL.pi_HFI.Ki = 0.8 + 0.034 * (CTRL.omg_fb);
+    // #if ANGLE_DETECTION_HFI == 1
+    CTRL.pi_HFI.Ki = (0.8 + 0.068 * (CTRL.omg_fb)) / 2;
     CTRL.theta_M = PI_Degree(&CTRL.pi_HFI, tmp);
-    CTRL.theta_M = rounddegree(CTRL.theta_M + M_PI);
-#endif
+    // CTRL.theta_M = rounddegree(CTRL.theta_M + M_PI);
+    // #endif
     dbg_tst(29, CTRL.theta_M);
+    // CTRL.theta_M = sm.theta_d - 10 * M_PI / 180;
     float xx = rounddegree(CTRL.theta_M);
     // CTRL.theta_M = xx;
     // CTRL.pi_HFI.i_state = xx;
@@ -388,7 +389,7 @@ void control(double speed_cmd, double speed_cmd_dot)
     CTRL.iMs = AB2M(CTRL.ial_fb, CTRL.ibe_fb, CTRL.cosT, CTRL.sinT);
     CTRL.iTs = AB2T(CTRL.ial_fb, CTRL.ibe_fb, CTRL.cosT, CTRL.sinT);
 
-    float a = 0.0028;
+    float a = 0.0005;
     float c = filter(CTRL.iTs, isqxold, isqyold);
     float b = c * -1 * sin(theta_hfi);
     tmp = b * a + (1 - a) * tmpold; // Cut frequency cal = a/(2*pi*ts)
@@ -418,6 +419,7 @@ void control(double speed_cmd, double speed_cmd_dot)
     // Current loop decoupling (skipped for now)
     CTRL.uMs_cmd = vM + fHFI;
     CTRL.uTs_cmd = vT;
+    dbg_tst(15, CTRL.uMs_cmd);
     // Voltage command in alpha-beta frame
     CTRL.ual = MT2A(CTRL.uMs_cmd, CTRL.uTs_cmd, CTRL.cosT, CTRL.sinT);
     CTRL.ube = MT2B(CTRL.uMs_cmd, CTRL.uTs_cmd, CTRL.cosT, CTRL.sinT);
