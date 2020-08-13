@@ -169,7 +169,7 @@ void Machine_init()
     ACM.ual = 0.0;
     ACM.ube = 0.0;
 
-    ACM.theta_d = 10.0 * M_PI / 180.0f;
+    ACM.theta_d = 170.0 * M_PI / 180.0f;
     xx[3] = ACM.theta_d;
 #endif
 }
@@ -178,7 +178,7 @@ int machine_simulation(double ud, double uq)
 {
     ACM.ud = ud;
     ACM.uq = uq;
-    rK555_Lin(0, xx, ACM.Ts, ld_matching(ACM.id));
+    rK555_Lin(0, xx, ACM.Ts, ACM.Ld);
 
 // API for explicit access
 #if MACHINE_TYPE == INDUCTION_MACHINE
@@ -193,7 +193,7 @@ int machine_simulation(double ud, double uq)
     }
     else if (xx[3] < -M_PI)
     {
-        xx[3] += 2 * M_PI; // 反转！
+        xx[3] += 2 * M_PI; // 坝转
     }
     ACM.theta_d = xx[3];
 
@@ -214,7 +214,7 @@ int machine_simulation(double ud, double uq)
     dbg_tst(22, ACM.id);
     dbg_tst(23, ACM.iq);
 
-    dbg_tst(17, ld_matching(ACM.id));
+    dbg_tst(17, ld_matching(ACM.id) - ACM.Lq);
 #endif
 
     if (isNumber(ACM.rpm))

@@ -235,7 +235,7 @@ void control(double speed_cmd, double speed_cmd_dot)
 }
 
 #elif MACHINE_TYPE == SYNCHRONOUS_MACHINE
-static double Vinj = 100;
+static double Vinj = 200;
 static double whfi = 800 * 2 * M_PI;
 static double theta_hfi = 0;
 
@@ -243,9 +243,6 @@ static double HFI_Voltage(float dtime)
 {
     theta_hfi += whfi * dtime;
     theta_hfi = rounddegree(theta_hfi);
-    dbg_tst(14, theta_hfi);
-    dbg_tst(15, sin(theta_hfi));
-    dbg_tst(16, whfi * dtime);
     return Vinj * sin(theta_hfi);
 }
 /* Initialization */
@@ -327,7 +324,11 @@ void CTRL_init()
 }
 
 float tmpold = 0;
-float tmp;
+float tmp, isdlowold = 0;
+float isdxold[10];
+float isdyold[10];
+float isqxold[10];
+float isqyold[10];
 
 void control(double speed_cmd, double speed_cmd_dot)
 {
@@ -351,13 +352,12 @@ void control(double speed_cmd, double speed_cmd_dot)
 #if ANGLE_DETECTION_HFI == 1
     CTRL.pi_HFI.Ki = 0.8 + 0.034 * (CTRL.omg_fb);
     CTRL.theta_M = PI_Degree(&CTRL.pi_HFI, tmp);
+    CTRL.theta_M = rounddegree(CTRL.theta_M + M_PI);
 #endif
     dbg_tst(29, CTRL.theta_M);
     float xx = rounddegree(CTRL.theta_M);
     // CTRL.theta_M = xx;
     // CTRL.pi_HFI.i_state = xx;
-    dbg_tst(10, xx);
-    dbg_tst(11, speed_cmd);
 #endif
 
 #if CONTROL_STRATEGY == NULL_D_AXIS_CURRENT_CONTROL
@@ -367,7 +367,7 @@ void control(double speed_cmd, double speed_cmd_dot)
 
     // M-axis current command
     CTRL.iMs_cmd = CTRL.rotor_flux_cmd / CTRL.Ld;
-    CTRL.iMs_cmd = -MAX(CTRL.iMs_cmd, 3);
+    // CTRL.iMs_cmd = MAX(CTRL.iMs_cmd, 3);
     // T-axis current command
     static int vc_count = 0;
     // if (vc_count++ == VC_LOOP_CEILING * DOWN_FREQ_EXE_INVERSE)
@@ -389,7 +389,7 @@ void control(double speed_cmd, double speed_cmd_dot)
     CTRL.iTs = AB2T(CTRL.ial_fb, CTRL.ibe_fb, CTRL.cosT, CTRL.sinT);
 
     float a = 0.0028;
-    float c = observation(CTRL.iTs);
+    float c = filter(CTRL.iTs, isqxold, isqyold);
     float b = c * -1 * sin(theta_hfi);
     tmp = b * a + (1 - a) * tmpold; // Cut frequency cal = a/(2*pi*ts)
     tmpold = tmp;
@@ -397,18 +397,27 @@ void control(double speed_cmd, double speed_cmd_dot)
     dbg_tst(26, b);
     dbg_tst(27, c);
     dbg_tst(28, CTRL.iTs);
+
+    float isdband, isdsin, isdlow;
+
+    isdband = filter(CTRL.iMs, isdxold, isdyold);
+    isdsin = isdband * -1 * sin(theta_hfi);
+    isdlow = isdsin * a + (1 - a) * isdlowold;
+    isdlowold = isdlow;
+
+    dbg_tst(11, isdband);
+    dbg_tst(12, isdsin);
+    dbg_tst(13, isdlow);
+    dbg_tst(14, CTRL.iMs);
     // Voltage command in M-T frame
     double vM, vT;
     vM = -PI(&CTRL.pi_iMs, CTRL.iMs - CTRL.iMs_cmd);
     vT = -PI(&CTRL.pi_iTs, CTRL.iTs - CTRL.iTs_cmd);
 
     float fHFI = HFI_Voltage(TS);
-    dbg_tst(12, fHFI);
     // Current loop decoupling (skipped for now)
     CTRL.uMs_cmd = vM + fHFI;
     CTRL.uTs_cmd = vT;
-
-    dbg_tst(13, CTRL.uMs_cmd);
     // Voltage command in alpha-beta frame
     CTRL.ual = MT2A(CTRL.uMs_cmd, CTRL.uTs_cmd, CTRL.cosT, CTRL.sinT);
     CTRL.ube = MT2B(CTRL.uMs_cmd, CTRL.uTs_cmd, CTRL.cosT, CTRL.sinT);

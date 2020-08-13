@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
         }
         else
         {
-            ACM.Tload = 5;
+            ACM.Tload = 0.5;
             // ACM.Tload = 1;
         }
 

@@ -1,6 +1,7 @@
 import numpy as np
 from scipy import fft
 import scipy.signal as signal
+import matplotlib.pyplot as plt
 
 def plot_response(fs, w, h, title=""):
     "Utility function to plot response functions"

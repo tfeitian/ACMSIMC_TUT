@@ -38,7 +38,10 @@ def run(param):
     import os
     path = r"D:\work\sim\ACMSIMC_TUT\scripts\node"
     os.chdir(path)
-    os.system(r"node.exe" + " " + " server.js")
+    try:
+        a = os.system(r"node.exe" + " " + " server.js")
+    except:
+        pass
     path = r"D:\work\sim\ACMSIMC_TUT"
     os.chdir(path)
     os.system("make")

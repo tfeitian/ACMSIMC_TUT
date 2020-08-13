@@ -128,25 +128,46 @@ void ob_init()
     ob.eemf_al = 0.0;
     ob.eemf_be = 0.0;
 }
-static float yold[2] = {0, 0};
-static float xold[2] = {0, 0};
-
-//a(1)* y(n)= b(1)* x(n)+ b(2)* x(n - 1)+…+ b(nb + 1)* x(n-nb)-a(2)* y(n - 1)-…-a(na + 1)* y(n-na)
 static float b_coef[3] = {0.004714, 0, -0.004714};
 static float a_coef[3] = {1, -1.609, 0.9906};
-
-float observation(float fiq)
+//a(1)* y(n)= b(1)* x(n)+ b(2)* x(n - 1)+…+ b(nb + 1)* x(n-nb)-a(2)* y(n - 1)-…-a(na + 1)* y(n-na)
+// static float b_coef[] = {0.0313, -0.1155, 0.1687, -0.1155, 0.0313};
+// static float a_coef[] = {1, -3.723, 5.381, -3.567, 0.9181};
+#define N_FILETER sizeof(b_coef) / sizeof(b_coef[0])
+//Band pass function
+float filter(float fiq, float *xold, float *yold)
 {
-    float ftemp[11];
+    /*     float ftemp[11];
     float fiqnew;
     fiqnew = 0.13672874 * fiq - 0.13672874 * xold[0] + 1.55753652 * yold[0] - 0.72654253 * yold[1]; //Butt band pass for 500Hz
     fiqnew = 0.004714 * fiq - 0.004714 * xold[0] + 1.609 * yold[0] - 0.9906 * yold[1];              //Cheeby band pass for 800Hz
     fiqnew = b_coef[0] * fiq + b_coef[1] * xold[0] + b_coef[2] * xold[1] - a_coef[1] * yold[0] - a_coef[2] * yold[1];
-    dbg_tst(24, fiqnew);
     yold[1] = yold[0];
     yold[0] = fiqnew;
     xold[0] = xold[1];
-    xold[1] = fiq;
-    return fiqnew;
+    xold[1] = fiq; */
+
+    int i = 0;
+    float fFilted;
+
+    for (i = 1; i < N_FILETER; i++)
+    {
+        xold[i] = xold[i - 1];
+    }
+    xold[0] = fiq;
+    for (i = 0; i < N_FILETER; i++)
+    {
+        fFilted += b_coef[i] * xold[i];
+    }
+    for (i = 1; i < N_FILETER; i++)
+    {
+        fFilted -= a_coef[i] * yold[i - 1];
+    }
+    for (i = 1; i < N_FILETER; i++)
+    {
+        yold[i] = yold[i - 1];
+    }
+    yold[0] = fFilted;
+    return fFilted;
 }
 #endif
