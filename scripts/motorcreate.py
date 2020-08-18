@@ -10,8 +10,11 @@ from pyleecan.Classes.LamSlotMag import LamSlotMag
 from pyleecan.Classes.CondType12 import CondType12
 from pyleecan.Classes.WindingCW1L import WindingCW1L
 from pyleecan.Classes.SlotW16 import SlotW16
+from pyleecan.Classes.SlotMPolar import SlotMPolar
 from pyleecan.Classes.LamSlotWind import LamSlotWind
 from pyleecan.Functions.load import load
+from pyleecan.Classes.MagnetType11 import MagnetType11
+
 mm = 1e-3  # Millimeter
 chdir('C:/Users/610099764')
 # Lamination setup
@@ -77,6 +80,11 @@ rotor = LamSlotMag(
     Kf1=1
     # without radial ventilation airducts but including insulation layers between lamination sheets
 )
+
+rotor.slot = SlotMPolar(
+    W0=0.5436,
+    Zs=10
+)
 # Set shaft
 shaft = Shaft(Drsh=rotor.Rint * 2,  # Diamater of the rotor shaft [m]
               # used to estimate bearing diameter for friction losses
@@ -114,6 +122,12 @@ rotor.mat_type = Steel1
 stator.winding.conductor.cond_mat = Copper1
 
 # Set magnets in the rotor hole
+rotor.slot.magnet = [MagnetType11(
+    Hmag=0.005,
+    Lmag=0.95,
+    Wmag=0.5463,
+    mat_type=Magnet_prius
+)]
 """ rotor.hole[0].magnet_0.mat_type = Magnet_prius
 rotor.hole[0].magnet_1.mat_type = Magnet_prius
 rotor.hole[0].magnet_0.type_magnetization = 1
