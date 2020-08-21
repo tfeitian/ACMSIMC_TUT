@@ -96,6 +96,7 @@ shaft = Shaft(Drsh=rotor.Rint * 2,  # Diamater of the rotor shaft [m]
 M400_50A = load('pyleecan/Data/Material/M400-50A.json')
 Copper1 = load('pyleecan/Data/Material/Copper1.json')
 Steel1 = load('pyleecan/Data/Material/Steel1.json')
+Steel1.mag.BH_curve = None
 # Defining magnets
 Magnet_prius = Material(name="Magnet_prius")
 
@@ -125,7 +126,7 @@ stator.winding.conductor.cond_mat = Copper1
 rotor.slot.magnet = [MagnetType11(
     Hmag=0.005,
     Lmag=0.95,
-    Wmag=0.5463,
+    Wmag=0.5436,
     mat_type=Magnet_prius
 )]
 """ rotor.hole[0].magnet_0.mat_type = Magnet_prius
