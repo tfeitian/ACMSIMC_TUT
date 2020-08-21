@@ -21,7 +21,7 @@ src/ramp.c
 
 CC = $(PREFIX)gcc
 
-C_DEFS = 
+C_DEFS =
 
 C_INCLUDES = -Iinc
 
@@ -47,7 +47,7 @@ vpath %.c $(sort $(dir $(C_SOURCES)))
 OBJECTS += $(addprefix $(BUILD_DIR)/,$(notdir $(ASM_SOURCES:.s=.o)))
 vpath %.s $(sort $(dir $(ASM_SOURCES)))
 
-$(BUILD_DIR)/%.o: %.c Makefile | $(BUILD_DIR) 
+$(BUILD_DIR)/%.o: %.c Makefile | $(BUILD_DIR)
 	$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
 
 $(BUILD_DIR)/%.o: %.s Makefile | $(BUILD_DIR)
@@ -55,10 +55,10 @@ $(BUILD_DIR)/%.o: %.s Makefile | $(BUILD_DIR)
 
 $(BUILD_DIR)/$(TARGET).exe: $(OBJECTS) Makefile
 	$(CC) $(OBJECTS) $(LDFLAGS) -o $@
-	$(SZ) $@
+#	$(SZ) $@
 
 $(BUILD_DIR):
-	mkdir $@		
+	mkdir $@
 
 clean:
 	rm -rf build/*

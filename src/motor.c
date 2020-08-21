@@ -142,7 +142,7 @@ void Machine_init()
     // double motorData[5] = {0.45, 4.15, 16.74, 0.504 / 13.5 * 2 * 1000, 2}; //Origin motor data
     double motorData[5] = {7.6, 75, 75, 150, 5}; //138mm
     ACM.R = motorData[0];
-    ACM.Ld = motorData[1] * 1e-3 * 1.5;
+    ACM.Ld = motorData[1] * 1e-3 * 1.01;
     ACM.Lq = motorData[2] * 1e-3;
     ACM.Bemf = motorData[3];
     //0.3375; // = backemf_rms@1000rpm/1000/pole pairs*13.5
@@ -169,7 +169,7 @@ void Machine_init()
     ACM.ual = 0.0;
     ACM.ube = 0.0;
 
-    ACM.theta_d = 10.0 * M_PI / 180.0f;
+    ACM.theta_d = param[E_MOTOR_ANGLE] * M_PI / 180.0f;
     xx[3] = ACM.theta_d;
 #endif
 }
@@ -214,7 +214,6 @@ int machine_simulation(double ud, double uq)
     dbg_tst(22, ACM.id);
     dbg_tst(23, ACM.iq);
 
-    dbg_tst(17, ld_matching(ACM.id) - ACM.Lq);
 #endif
 
     if (isNumber(ACM.rpm))

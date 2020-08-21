@@ -7,9 +7,10 @@
 #include "inverter.h"
 #include "userdefine.h"
 #include "ramp.h"
+#include "tools.h"
 
 static float g_fTest[20];
-float param = 60;
+float param[10] = {60, 20};
 
 void write_input(int argc, char *argv[])
 {
@@ -24,16 +25,24 @@ void write_input(int argc, char *argv[])
 int main(int argc, char *argv[])
 {
     printf("NUMBER_OF_LINES: %d\n\n", NUMBER_OF_LINES);
+    for (int i = 0; i < MIN(10, argc - 1); i++)
+    {
+        param[i] = atof(argv[i + 1]);
+    }
 
-    param = atof(argv[1]);
-    printf("Parameter is %f.\n", param);
+    printf("Parameter cnt is %d!\n", argc);
+    for (int i = 0; i < (sizeof(param) / sizeof(param[0])); i++)
+    {
+        printf("%f\n", param[i]);
+    }
+
     write_input(argc, argv);
     /* Initialization */
     Machine_init();
     CTRL_init();
     acm_init();
     ob_init();
-    socket_vinit();
+    // socket_vinit();
     smo_vInit(ACM.R, ACM.L0);
 
     FILE *fw;
@@ -61,7 +70,7 @@ int main(int argc, char *argv[])
         }
         else if (timebase > 2.0)
         {
-            rpm_cmd = param;
+            rpm_cmd = param[E_SPEED_REF];
         }
         else
         {

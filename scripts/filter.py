@@ -32,8 +32,13 @@ def plot_response(fs, w, h, title=""):
     "Utility function to plot response functions"
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    ax.plot(0.5*fs*w/np.pi, 20*np.log10(np.abs(h)))
-    ax.set_ylim(-40, 5)
+    ax.plot(0.5*fs*w/np.pi, 20*np.log10(np.abs(h)), 'b')
+    angles = np.unwrap(np.angle(h))
+    ax2 = ax.twinx()
+    ax2.plot(0.5*fs*w/np.pi, angles, 'g')
+    ax2.grid()
+    ax2.axis('tight')
+    ax.set_ylim(-80, 5)
     ax.set_xlim(0, 0.5*fs)
     ax.grid(True)
     ax.set_xlabel('Frequency (Hz)')
@@ -60,7 +65,7 @@ def iir():
     print(b, a)
 
 
-if __name__ == "__main__":
+def dd():
     fs = 8000.0         # Sample rate, Hz
     bandcenter = 1000
     band = [bandcenter * 0.9, bandcenter * 1.1]  # Desired pass band, Hz
@@ -75,7 +80,8 @@ if __name__ == "__main__":
     plot_response(fs, w, h, "Band-pass Filter" + a)
     buff()
 
-    b = [0.0028]
+if __name__ == "__main__":
+    b = [0.0002]
     a = [1, b[0] - 1]
     w, h = signal.freqz(b, a)
-    plot_response(8000, w, h, str([b, a]))
+    plot_response(16000, w, h, str([b, a]))

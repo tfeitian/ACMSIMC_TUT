@@ -131,8 +131,10 @@ void ob_init()
 // static float b_coef[3] = {0.004714, 0, -0.004714};//800Hz
 // static float a_coef[3] = {1, -1.609, 0.9906};
 //a(1)* y(n)= b(1)* x(n)+ b(2)* x(n - 1)+…+ b(nb + 1)* x(n-nb)-a(2)* y(n - 1)-…-a(na + 1)* y(n-na)
-static float b_coef[] = {0.0192593, 0, -0.0192593}; //400Hz
+static float b_coef[] = {0.0192593, 0, -0.0192593}; //400Hz Butterworth
 static float a_coef[] = {1, -1.93771, 0.961481};
+// static float b_coef[] = {0.0312997, -0.119968, 0.177355, -0.119968, 0.0312997}; //400Hz
+// static float a_coef[] = {1, -3.86625, 5.65314, -3.70437, 0.918059};
 #define N_FILETER sizeof(b_coef) / sizeof(b_coef[0])
 //Band pass function
 float filter(float fiq, float *xold, float *yold)

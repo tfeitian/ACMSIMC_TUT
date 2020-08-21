@@ -1,6 +1,7 @@
 import csv
 import numpy as np
 import time
+import os
 
 a = []
 
@@ -34,21 +35,22 @@ def read():
                 break
     return ll
 
-def run(param):
-    import os
+def run(param=0, angle = 10):
+    path = r"D:\work\sim\ACMSIMC_TUT"
+    os.chdir(path)
+    os.system("make")
+    os.chdir(path+r"\build")
+    exefile = r"main.exe"
+    os.system(exefile + ' ' + str(param) + " " + str(angle))
+    time.sleep(3)
+
+def startserver():
     path = r"D:\work\sim\ACMSIMC_TUT\scripts\node"
     os.chdir(path)
     try:
         a = os.system(r"node.exe" + " " + " server.js")
     except:
         pass
-    path = r"D:\work\sim\ACMSIMC_TUT"
-    os.chdir(path)
-    os.system("make")
-    os.chdir(path+r"\build")
-    exefile = r"main.exe"
-    os.system(exefile + ' ' + str(param))
-    time.sleep(3)
 
 def show():
     import matplotlib.pyplot as plt

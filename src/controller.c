@@ -235,7 +235,7 @@ void control(double speed_cmd, double speed_cmd_dot)
 }
 
 #elif MACHINE_TYPE == SYNCHRONOUS_MACHINE
-static double Vinj = 200;
+static double Vinj = 100;
 static double whfi = 400 * 2 * M_PI;
 static double theta_hfi = 0;
 
@@ -325,10 +325,10 @@ void CTRL_init()
 
 float tmpold = 0;
 float tmp, isdlowold = 0;
-float isdxold[10] = {0};
-float isdyold[10] = {0};
-float isqxold[10] = {0};
-float isqyold[10] = {0};
+float isdxold[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+float isdyold[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+float isqxold[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+float isqyold[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 void control(double speed_cmd, double speed_cmd_dot)
 {
@@ -350,8 +350,12 @@ void control(double speed_cmd, double speed_cmd_dot)
 
     //  +param *M_PI / 180.0f;
     // #if ANGLE_DETECTION_HFI == 1
-    CTRL.pi_HFI.Ki = (0.8 + 0.068 * (CTRL.omg_fb)) / 2;
+    CTRL.pi_HFI.Ki = (0.8 + 0.068 * (CTRL.omg_fb)) * 1.5;
     CTRL.theta_M = PI_Degree(&CTRL.pi_HFI, tmp);
+    dbg_tst(17, CTRL.theta_M);
+    // CTRL.theta_M -= M_PI / 2; //0.14875 * CTRL.omg_fb;
+    dbg_tst(18, CTRL.theta_M);
+    CTRL.theta_M = rounddegree(CTRL.theta_M);
     // CTRL.theta_M = rounddegree(CTRL.theta_M + M_PI);
     // #endif
     dbg_tst(29, CTRL.theta_M);
