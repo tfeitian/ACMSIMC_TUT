@@ -35,13 +35,16 @@ def read():
                 break
     return ll
 
-def run(param=0, angle = 10):
+def run(*args):#reference angle load
     path = r"D:\work\sim\ACMSIMC_TUT"
     os.chdir(path)
     os.system("make")
     os.chdir(path+r"\build")
-    exefile = r"main.exe"
-    os.system(exefile + ' ' + str(param) + " " + str(angle))
+    cmdstr = r"main.exe"
+    for i in args:
+        cmdstr += " "
+        cmdstr += str(i)
+    os.system(cmdstr)
     time.sleep(3)
 
 def startserver():

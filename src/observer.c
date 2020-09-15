@@ -136,6 +136,9 @@ static float a_coef[] = {1, -1.93771, 0.961481};
 // static float b_coef[] = {0.0312997, -0.119968, 0.177355, -0.119968, 0.0312997}; //400Hz
 // static float a_coef[] = {1, -3.86625, 5.65314, -3.70437, 0.918059};
 #define N_FILETER sizeof(b_coef) / sizeof(b_coef[0])
+
+static float bp_800_coefb[] = {0.009707, -0.07363, 0.2482, -0.4856, 0.6025, -0.4856, 0.2482, -0.07363, 0.009707};
+static float bp_800_coefa[] = {1, -7.542, 25.26, -49.05, 60.35, -48.19, 24.39, -7.156, 0.9324};
 //Band pass function
 float filter(float fiq, float *xold, float *yold)
 {

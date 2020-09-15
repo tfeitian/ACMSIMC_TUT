@@ -4,3 +4,4 @@
 *.pyc
 /build
 /scripts/node/node_modules
+scripts/node/debug.log

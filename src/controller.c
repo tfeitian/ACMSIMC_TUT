@@ -315,7 +315,8 @@ void CTRL_init()
     CTRL.pi_iTs.i_limit = 650; // unit: Volt, 350V->max 1300rpm
 
     printf("Kp_cur=%g, Ki_cur=%g\n", CTRL.pi_iMs.Kp, CTRL.pi_iMs.Ki);
-    CTRL.pi_HFI.Kp = 150;
+    CTRL.pi_HFI.Kp = 0;
+    //150;
     CTRL.pi_HFI.Ti = 0.08;
     CTRL.pi_HFI.Ki = 1.6;
     CTRL.pi_HFI.i_state = 0.0;
@@ -350,10 +351,10 @@ void control(double speed_cmd, double speed_cmd_dot)
 
     //  +param *M_PI / 180.0f;
     // #if ANGLE_DETECTION_HFI == 1
-    CTRL.pi_HFI.Ki = (0.8 + 0.068 * (CTRL.omg_fb)) * 1.5;
+    CTRL.pi_HFI.Ki = (0.8 + 0.068 * (CTRL.omg_fb)) * 1.5 / 30;
     CTRL.theta_M = PI_Degree(&CTRL.pi_HFI, tmp);
     dbg_tst(17, CTRL.theta_M);
-    // CTRL.theta_M -= M_PI / 2; //0.14875 * CTRL.omg_fb;
+    CTRL.theta_M += M_PI / 2; //0.14875 * CTRL.omg_fb;
     dbg_tst(18, CTRL.theta_M);
     CTRL.theta_M = rounddegree(CTRL.theta_M);
     // CTRL.theta_M = rounddegree(CTRL.theta_M + M_PI);
@@ -364,7 +365,7 @@ void control(double speed_cmd, double speed_cmd_dot)
     // CTRL.theta_M = xx;
     // CTRL.pi_HFI.i_state = xx;
 #endif
-
+    // CTRL.theta_M = sm.theta_d;
 #if CONTROL_STRATEGY == NULL_D_AXIS_CURRENT_CONTROL
     // Flux (linkage) command
     CTRL.rotor_flux_cmd = 0.0;
@@ -407,7 +408,7 @@ void control(double speed_cmd, double speed_cmd_dot)
 
     isdband = filter(CTRL.iMs, isdxold, isdyold);
     isdsin = isdband * -1 * sin(theta_hfi);
-    isdlow = isdsin * a + (1 - a) * isdlowold;
+    isdlow = CTRL.iMs * a + (1 - a) * isdlowold;
     isdlowold = isdlow;
 
     dbg_tst(11, isdband);

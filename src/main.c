@@ -10,7 +10,7 @@
 #include "tools.h"
 
 static float g_fTest[20];
-float param[10] = {60, 20};
+float param[10] = {60, 20, 0.1};
 
 void write_input(int argc, char *argv[])
 {
@@ -70,12 +70,12 @@ int main(int argc, char *argv[])
         }
         else if (timebase > 2.0)
         {
-            rpm_cmd = param[E_SPEED_REF];
+            // rpm_cmd = param[E_SPEED_REF];
+            // ACM.Tload = param[E_LOAD_REF];
         }
         else
         {
-            ACM.Tload = 0.5;
-            // ACM.Tload = 1;
+            ACM.Tload = 0.1;
         }
 
         /* Simulated ACM */

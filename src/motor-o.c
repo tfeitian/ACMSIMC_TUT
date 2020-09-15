@@ -47,20 +47,12 @@ static void rK5_dynamics(double t, double *x, double *fx, double ld)
 
 #elif MACHINE_TYPE == SYNCHRONOUS_MACHINE
     // electromagnetic model
-    if (x[0] > 0.60)
-    {
-        x[0] = 0.60;
-    }
+    fx[0] = (ACM.ud - ACM.R * x[0] + x[2] * ACM.Lq * x[1]) / ld;
 
-    double id = (x[0] - ACM.KE) / ACM.Ld;
-    double iq = x[1] / ACM.Lq;
-
-    fx[0] = (ACM.ud - ACM.R * id + x[2] * x[1]);
-
-    fx[1] = (ACM.uq - ACM.R * iq - x[2] * x[0]);
+    fx[1] = (ACM.uq - ACM.R * x[1] - x[2] * ld * x[0] - x[2] * ACM.KE) / ACM.Lq;
 
     // mechanical model
-    ACM.Tem = 3.0 / 2 * ACM.npp * (iq * x[0] - id * x[1]);
+    ACM.Tem = ACM.npp * (x[1] * ACM.KE + (ld - ACM.Lq) * x[0] * x[1]);
     fx[2] = (ACM.Tem - ACM.Tload) * ACM.mu_m; // elec. angular rotor speed
     fx[3] = x[2];                             // elec. angular rotor position
 #endif
@@ -205,14 +197,11 @@ int machine_simulation(double ud, double uq)
     }
     ACM.theta_d = xx[3];
 
-    // ACM.id = xx[0];
-    // ACM.iq = xx[1];
-    ACM.phid = xx[0];
-    ACM.id = (ACM.phid - ACM.KE) / ACM.Ld;
-    //ACM.id *ACM.Ld + ACM.KE;
-    ACM.phiq = xx[1];
-    ACM.iq = ACM.phiq / ACM.Lq;
-    //ACM.iq *ACM.Lq;
+    ACM.id = xx[0];
+    ACM.iq = xx[1];
+    ACM.phid = ACM.id * ACM.Ld + ACM.KE;
+    ACM.phiq = ACM.iq * ACM.Lq;
+
     ACM.ial = MT2A(ACM.id, ACM.iq, cos(ACM.theta_d), sin(ACM.theta_d));
     ACM.ibe = MT2B(ACM.id, ACM.iq, cos(ACM.theta_d), sin(ACM.theta_d));
     ACM.rpm = xx[2] * 60 / (2 * M_PI * ACM.npp);
@@ -220,7 +209,7 @@ int machine_simulation(double ud, double uq)
     ACM.Ea = MT2A(ACM.ud, ACM.uq, cos(ACM.theta_d), sin(ACM.theta_d)) - ACM.R * ACM.ial;
     ACM.Eb = MT2B(ACM.ud, ACM.uq, cos(ACM.theta_d), sin(ACM.theta_d)) - ACM.R * ACM.ibe;
     //  -ACM.Ld *xx;
-    dbg_tst(19, ACM.phid);
+    dbg_tst(19, ACM.phid - ACM.KE);
     dbg_tst(20, ACM.phiq);
     dbg_tst(21, atan2f(-ACM.Ea, ACM.Eb));
     dbg_tst(22, ACM.id);
