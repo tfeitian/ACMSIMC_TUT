@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
     printf("Parameter cnt is %d!\n", argc);
     for (int i = 0; i < (sizeof(param) / sizeof(param[0])); i++)
     {
-        printf("%f\n", param[i]);
+        printf("%d -- %f\n", i, param[i]);
     }
 
     write_input(argc, argv);
@@ -68,14 +68,26 @@ int main(int argc, char *argv[])
         {
             // rpm_cmd = 52;
         }
-        else if (timebase > 2.0)
+        else if (timebase > 1.0)
         {
-            // rpm_cmd = param[E_SPEED_REF];
+            rpm_cmd = param[E_SPEED_REF];
             // ACM.Tload = param[E_LOAD_REF];
         }
         else
         {
-            ACM.Tload = 0.1;
+            double k = 0.01 / 2;
+            ACM.Tload = param[E_LOAD_REF];
+            //ACM.omg *ACM.omg *k;
+            if (ACM.Tload < 0.5)
+            {
+                // ACM.Tload = 0.5;
+            }
+            else if (ACM.Tload > 10)
+            {
+                ACM.Tload = 10;
+            }
+
+            dbg_tst(16, ACM.Tload);
         }
 
         /* Simulated ACM */
@@ -101,6 +113,7 @@ int main(int argc, char *argv[])
             write_data_to_file(fw);
 
             control(ramp(rpm_cmd, 2, TS), 0);
+            // openloop_control(0, 0, timebase);
         }
 
         inverter_model(CTRL.ual, CTRL.ube, sm.theta_d, &ud, &uq);
@@ -146,7 +159,7 @@ void write_data_to_file(FILE *fw)
 #elif MACHINE_TYPE == SYNCHRONOUS_MACHINE
             fprintf(fw, "%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g\n",
                     ACM.id, ACM.iq, ACM.omg, ACM.theta_d,
-                    ACM.Tem, CTRL.uTs_cmd, CTRL.iMs_cmd, CTRL.iMs,
+                    CTRL.uMs_cmd, CTRL.uTs_cmd, CTRL.iMs_cmd, CTRL.iMs,
                     CTRL.iTs_cmd, CTRL.iTs, g_fTest[0],
                     g_fTest[1], g_fTest[2], g_fTest[3],
                     g_fTest[4], g_fTest[5], g_fTest[6],

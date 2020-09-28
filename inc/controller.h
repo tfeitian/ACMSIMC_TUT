@@ -123,4 +123,5 @@ extern struct ControllerForExperiment CTRL;
 void CTRL_init();
 void control(double speed_cmd, double speed_cmd_dot);
 void measurement();
+void openloop_control(double speed_cmd, double speed_cmd_dot, double runtine);
 #endif

@@ -4,7 +4,8 @@
 #include "motor.h"
 #include "observer.h"
 #include "tools.h"
-
+#include "string.h"
+#include "userdefine.h"
 /* PI Control
  * */
 static double PI(struct PI_Reg *r, double err)
@@ -235,9 +236,12 @@ void control(double speed_cmd, double speed_cmd_dot)
 }
 
 #elif MACHINE_TYPE == SYNCHRONOUS_MACHINE
-static double Vinj = 100;
+static double Vinj = 0;
 static double whfi = 400 * 2 * M_PI;
 static double theta_hfi = 0;
+
+struct PI_Reg sPi_Id;
+struct PI_Reg sPi_Iq;
 
 static double HFI_Voltage(float dtime)
 {
@@ -308,11 +312,14 @@ void CTRL_init()
     CTRL.pi_iMs.i_state = 0.0;
     CTRL.pi_iMs.i_limit = 350; // 350.0; // unit: Volt
 
+    memcpy(&sPi_Id, &CTRL.pi_iMs, sizeof(sPi_Id));
+
     CTRL.pi_iTs.Kp = 15;
     CTRL.pi_iTs.Ti = 0.08;
     CTRL.pi_iTs.Ki = CTRL.pi_iTs.Kp / CTRL.pi_iTs.Ti * TS;
     CTRL.pi_iTs.i_state = 0.0;
     CTRL.pi_iTs.i_limit = 650; // unit: Volt, 350V->max 1300rpm
+    memcpy(&sPi_Iq, &CTRL.pi_iTs, sizeof(sPi_Iq));
 
     printf("Kp_cur=%g, Ki_cur=%g\n", CTRL.pi_iMs.Kp, CTRL.pi_iMs.Ki);
     CTRL.pi_HFI.Kp = 0;
@@ -331,35 +338,127 @@ float isdyold[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 float isqxold[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 float isqyold[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
+#define REF_RAMP_STEP_OPENLOOP 0.0001
+double speedref = 0;
+double rotortheta0 = -M_PI / 2;
+
+void abtodq(double a, double b, double theta, double *d, double *q)
+{
+    double cosT = cos(theta);
+    double sinT = sin(theta);
+
+    *d = AB2M(a, b, cosT, sinT);
+    *q = AB2T(a, b, cosT, sinT);
+}
+
+void dqtoab(double d, double q, double theta, double *a, double *b)
+{
+    double cosT = cos(theta);
+    double sinT = sin(theta);
+
+    *a = MT2A(d, q, cosT, sinT);
+    *b = MT2B(d, q, cosT, sinT);
+}
+
+void openloop_control(double speed_cmd, double speed_cmd_dot, double runtine)
+{
+    speedref += REF_RAMP_STEP_OPENLOOP;
+    double iq0ref = 2.0;
+    double id0ref = 0;
+    double wref = speedref * 2 * M_PI;
+
+    // if (runtine > 1)
+    {
+        rotortheta0 += wref * TS;
+        rotortheta0 = rounddegree(rotortheta0);
+        // rotortheta0 = -M_PI / 2;
+    }
+
+    dbg_tst(15, rotortheta0);
+
+    double ia = sm.is_curr[0];
+    double ib = sm.is_curr[1];
+
+    double id, iq;
+    abtodq(ia, ib, rotortheta0, &id, &iq);
+    dbg_tst(13, id);
+    dbg_tst(14, iq);
+
+    double ud, uq;
+    ud = -PI(&sPi_Id, id - id0ref);
+    uq = -PI(&sPi_Iq, iq - iq0ref);
+
+    dbg_tst(11, ud);
+    dbg_tst(12, uq);
+
+    dqtoab(ud, uq, rotortheta0, &CTRL.ual, &CTRL.ube);
+}
+double theta_d_harnefors = 0.0;
+double omg_harnefors = 0.0;
+
+double sign(double x)
+{
+    if(x >= 0)
+    {
+        return 1;
+    }
+    else
+    {
+        return -1;
+    }
+}
+void harnefors_scvm()
+{
+#define KE_MISMATCH 1.0 // 0.7
+    double d_axis_emf;
+    double q_axis_emf;
+#define LAMBDA 2        // 2
+#define CJH_TUNING_A 1  // 1
+#define CJH_TUNING_B 1  // 1
+    double lambda_s = LAMBDA * sign(omg_harnefors);
+    double alpha_bw_lpf = CJH_TUNING_A * 0.1 * (1000 * RPM_2_RAD_PER_SEC(ACM.npp)) + CJH_TUNING_B * 2 * LAMBDA * fabs(omg_harnefors);
+    // d_axis_emf = CTRL.ud_cmd - 1*CTRL.R*CTRL.id_cmd + omg_harnefors*1.0*CTRL.Lq*CTRL.iq_cmd; // If Ld=Lq.
+    // q_axis_emf = CTRL.uq_cmd - 1*CTRL.R*CTRL.iq_cmd - omg_harnefors*1.0*CTRL.Ld*CTRL.id_cmd; // If Ld=Lq.
+    d_axis_emf = CTRL.uMs_cmd - 1 * CTRL.R * CTRL.iMs_cmd + omg_harnefors * 1.0 * CTRL.Lq * CTRL.iTs_cmd; // eemf
+    q_axis_emf = CTRL.uTs_cmd - 1 * CTRL.R * CTRL.iTs_cmd - omg_harnefors * 1.0 * CTRL.Lq * CTRL.iMs_cmd; // eemf
+    // Note it is bad habit to write numerical integration explictly like this. The states on the right may be accencidentally modified on the run.
+    omg_harnefors += TS * alpha_bw_lpf * ((q_axis_emf - lambda_s * d_axis_emf) / (CTRL.KE * KE_MISMATCH + (CTRL.Ld - CTRL.Lq) * CTRL.iMs_cmd) - omg_harnefors);
+    theta_d_harnefors += TS * omg_harnefors;
+
+    if (theta_d_harnefors > M_PI)
+    {
+        theta_d_harnefors -= 2 * M_PI;
+    }
+    if (theta_d_harnefors < -M_PI)
+    {
+        theta_d_harnefors += 2 * M_PI;
+    }
+    dbg_tst(15, omg_harnefors);
+    dbg_tst(17, theta_d_harnefors);
+    dbg_tst(18, d_axis_emf);
+    dbg_tst(19, q_axis_emf);
+}
+
 void control(double speed_cmd, double speed_cmd_dot)
 {
 // Input 1 is feedback: estimated speed or measured speed
-#if SENSORLESS_CONTROL
-    getch("Not Implemented");
-    // CTRL.omg_fb    ;
-    // CTRL.omega_syn ;
-#else
-    CTRL.omg_fb = sm.omg;
-#endif
+
     // Input 2 is feedback: measured current
     CTRL.ial_fb = sm.is_curr[0];
     CTRL.ibe_fb = sm.is_curr[1];
 // Input 3 is the rotor d-axis position
 #if SENSORLESS_CONTROL
-    getch("Not Implemented");
+    // getch("Not Implemented");
 #else
 
     //  +param *M_PI / 180.0f;
-    // #if ANGLE_DETECTION_HFI == 1
+    #if ANGLE_DETECTION_HFI == 1
     CTRL.pi_HFI.Ki = (0.8 + 0.068 * (CTRL.omg_fb)) * 1.5 / 30;
     CTRL.theta_M = PI_Degree(&CTRL.pi_HFI, tmp);
-    dbg_tst(17, CTRL.theta_M);
     CTRL.theta_M += M_PI / 2; //0.14875 * CTRL.omg_fb;
-    dbg_tst(18, CTRL.theta_M);
     CTRL.theta_M = rounddegree(CTRL.theta_M);
     // CTRL.theta_M = rounddegree(CTRL.theta_M + M_PI);
-    // #endif
-    dbg_tst(29, CTRL.theta_M);
+    #endif
     // CTRL.theta_M = sm.theta_d - 10 * M_PI / 180;
     float xx = rounddegree(CTRL.theta_M);
     // CTRL.theta_M = xx;
@@ -372,17 +471,27 @@ void control(double speed_cmd, double speed_cmd_dot)
 #endif
 
     // M-axis current command
-    CTRL.iMs_cmd = CTRL.rotor_flux_cmd / CTRL.Ld;
+
+
     // CTRL.iMs_cmd = MAX(CTRL.iMs_cmd, 3);
     // T-axis current command
     static int vc_count = 0;
-    // if (vc_count++ == VC_LOOP_CEILING * DOWN_FREQ_EXE_INVERSE)
+    if (vc_count++ == VC_LOOP_CEILING * DOWN_FREQ_EXE_INVERSE)
     {
         vc_count = 0;
         CTRL.omg_ctrl_err = CTRL.omg_fb - speed_cmd * RPM_2_RAD_PER_SEC(ACM.npp);
         CTRL.iTs_cmd = -PI(&CTRL.pi_speed, CTRL.omg_ctrl_err);
 
         CTRL.speed_ctrl_err = CTRL.omg_ctrl_err * RAD_PER_SEC_2_RPM(ACM.npp);
+    }
+
+    if (fabs(CTRL.omg_fb) > 0.3 * 160)
+    {
+        CTRL.iMs_cmd = CTRL.rotor_flux_cmd / CTRL.Ld;
+    }
+    else
+    {
+        CTRL.iMs_cmd = CTRL.iTs_cmd / LAMBDA * sign(CTRL.omg_fb);
     }
 
 #if CONTROL_STRATEGY == NULL_D_AXIS_CURRENT_CONTROL
@@ -394,15 +503,12 @@ void control(double speed_cmd, double speed_cmd_dot)
     CTRL.iMs = AB2M(CTRL.ial_fb, CTRL.ibe_fb, CTRL.cosT, CTRL.sinT);
     CTRL.iTs = AB2T(CTRL.ial_fb, CTRL.ibe_fb, CTRL.cosT, CTRL.sinT);
 
-    float a = 0.0005;
+#if ANGLE_DETECTION_HFI == 1
+ float a = 0.0005;
     float c = filter(CTRL.iTs, isqxold, isqyold);
     float b = c * -1 * sin(theta_hfi);
     tmp = b * a + (1 - a) * tmpold; // Cut frequency cal = a/(2*pi*ts)
     tmpold = tmp;
-    dbg_tst(25, tmp);
-    dbg_tst(26, b);
-    dbg_tst(27, c);
-    dbg_tst(28, CTRL.iTs);
 
     float isdband, isdsin, isdlow;
 
@@ -410,24 +516,43 @@ void control(double speed_cmd, double speed_cmd_dot)
     isdsin = isdband * -1 * sin(theta_hfi);
     isdlow = CTRL.iMs * a + (1 - a) * isdlowold;
     isdlowold = isdlow;
-
-    dbg_tst(11, isdband);
-    dbg_tst(12, isdsin);
-    dbg_tst(13, isdlow);
-    dbg_tst(14, CTRL.iMs);
+#endif
     // Voltage command in M-T frame
     double vM, vT;
     vM = -PI(&CTRL.pi_iMs, CTRL.iMs - CTRL.iMs_cmd);
     vT = -PI(&CTRL.pi_iTs, CTRL.iTs - CTRL.iTs_cmd);
 
+#if ANGLE_DETECTION_HFI == 1
     float fHFI = HFI_Voltage(TS);
+#else
+    float fHFI = 0;
+#endif
     // Current loop decoupling (skipped for now)
     CTRL.uMs_cmd = vM + fHFI;
     CTRL.uTs_cmd = vT;
-    dbg_tst(15, CTRL.uMs_cmd);
     // Voltage command in alpha-beta frame
     CTRL.ual = MT2A(CTRL.uMs_cmd, CTRL.uTs_cmd, CTRL.cosT, CTRL.sinT);
     CTRL.ube = MT2B(CTRL.uMs_cmd, CTRL.uTs_cmd, CTRL.cosT, CTRL.sinT);
+
+    /*     CTRL.ud_cmd = CTRL.uMs_cmd;
+    CTRL.uq_cmd = CTRL.uTs_cmd;
+    CTRL.iq_cmd = CTRL.iTs_cmd;
+    CTRL.id_cmd = CTRL.iMs_cmd; */
+#if SENSORLESS_CONTROL
+    // getch("Not Implemented");
+    // CTRL.omg_fb    ;
+    // CTRL.omega_syn ;
+    harnefors_scvm();
+    CTRL.omg_fb = omg_harnefors;
+    CTRL.theta_M = theta_d_harnefors;
+#else
+    // CTRL.omg_fb = sm.omg;
+    // CTRL.theta_M = sm.theta_d;
+
+    harnefors_scvm();
+    CTRL.omg_fb = omg_harnefors;
+    CTRL.theta_M = theta_d_harnefors;
+#endif
 }
 
 #endif

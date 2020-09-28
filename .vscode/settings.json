@@ -12,6 +12,8 @@
         "type_traits": "cpp",
         "utility": "cpp",
         "cmath": "c",
-        "tools.h": "c"
+        "tools.h": "c",
+        "limits": "c",
+        "*.tcc": "c"
     }
 }

@@ -2,6 +2,7 @@ import csv
 import numpy as np
 import time
 import os
+import threading
 
 a = []
 
@@ -44,8 +45,10 @@ def run(*args):#reference angle load
     for i in args:
         cmdstr += " "
         cmdstr += str(i)
-    os.system(cmdstr)
-    time.sleep(3)
+    def go():
+        os.system(cmdstr)
+    a = threading.Thread(target = go,)
+    a.start()
 
 def startserver():
     path = r"D:\work\sim\ACMSIMC_TUT\scripts\node"
