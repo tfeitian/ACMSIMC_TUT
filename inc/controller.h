@@ -4,7 +4,7 @@
 
 #include "ACMSim.h"
 
-#define VC_LOOP_CEILING 40
+#define VC_LOOP_CEILING 16
 
 struct PI_Reg
 {

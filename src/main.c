@@ -10,7 +10,7 @@
 #include "tools.h"
 
 static float g_fTest[20];
-float param[10] = {60, 20, 0.1};
+float param[10] = {60, 20, 0.1, 2};
 
 void write_input(int argc, char *argv[])
 {
@@ -60,13 +60,15 @@ int main(int argc, char *argv[])
     for (_ = 0; _ < NUMBER_OF_LINES; ++_)
     {
         /* Command and Load Torque */
-        if (timebase > 6)
+        if (timebase > 3.5)
         {
             // rpm_cmd = 80;
+            ACM.Tload = 0;
         }
-        else if (timebase > 5)
+        else if (timebase > 2.7)
         {
             // rpm_cmd = 52;
+            ACM.Tload = param[E_LOAD_REF];
         }
         else if (timebase > 1.0)
         {
@@ -76,7 +78,6 @@ int main(int argc, char *argv[])
         else
         {
             double k = 0.01 / 2;
-            ACM.Tload = param[E_LOAD_REF];
             //ACM.omg *ACM.omg *k;
             if (ACM.Tload < 0.5)
             {
@@ -86,9 +87,8 @@ int main(int argc, char *argv[])
             {
                 ACM.Tload = 10;
             }
-
-            dbg_tst(16, ACM.Tload);
         }
+        dbg_tst(16, ACM.Tload);
 
         /* Simulated ACM */
         if (machine_simulation(ud, uq))
@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
 
             write_data_to_file(fw);
 
-            control(ramp(rpm_cmd, 2, TS), 0);
+            control(ramp(rpm_cmd, param[E_RAMP_TIME], TS), 0);
             // openloop_control(0, 0, timebase);
         }
 
@@ -158,7 +158,7 @@ void write_data_to_file(FILE *fw)
                     ob.psi_mu_al, ob.tajima.omg * RAD_PER_SEC_2_RPM(ACM.npp));
 #elif MACHINE_TYPE == SYNCHRONOUS_MACHINE
             fprintf(fw, "%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g\n",
-                    ACM.id, ACM.iq, ACM.omg, ACM.theta_d,
+                    ACM.id, ACM.iq, ACM.omg * RAD_PER_SEC_2_RPM(ACM.npp), ACM.theta_d,
                     CTRL.uMs_cmd, CTRL.uTs_cmd, CTRL.iMs_cmd, CTRL.iMs,
                     CTRL.iTs_cmd, CTRL.iTs, g_fTest[0],
                     g_fTest[1], g_fTest[2], g_fTest[3],

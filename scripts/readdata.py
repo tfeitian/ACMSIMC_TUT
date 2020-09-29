@@ -36,7 +36,8 @@ def read():
                 break
     return ll
 
-def run(*args):#reference angle load
+#ref,angle,load,ramptime
+def run(*args:"0-ref,1-angle,2-load,3-ramptime"):#reference angle load
     path = r"D:\work\sim\ACMSIMC_TUT"
     os.chdir(path)
     os.system("make")

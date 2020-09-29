@@ -306,19 +306,19 @@ void CTRL_init()
 
     printf("Kp_omg=%g, Ki_omg=%g\n", CTRL.pi_speed.Kp, CTRL.pi_speed.Ki);
 
-    CTRL.pi_iMs.Kp = 15; // cutoff frequency of 1530 rad/s
-    CTRL.pi_iMs.Ti = 0.08;
+    CTRL.pi_iMs.Kp = 1300; // cutoff frequency of 1530 rad/s
+    CTRL.pi_iMs.Ti = ACM.L0 / ACM.R;
     CTRL.pi_iMs.Ki = CTRL.pi_iMs.Kp / CTRL.pi_iMs.Ti * TS; // =0.025
     CTRL.pi_iMs.i_state = 0.0;
     CTRL.pi_iMs.i_limit = 350; // 350.0; // unit: Volt
 
     memcpy(&sPi_Id, &CTRL.pi_iMs, sizeof(sPi_Id));
 
-    CTRL.pi_iTs.Kp = 15;
-    CTRL.pi_iTs.Ti = 0.08;
+    CTRL.pi_iTs.Kp = 1300;
+    CTRL.pi_iTs.Ti = ACM.L0 / ACM.R;
     CTRL.pi_iTs.Ki = CTRL.pi_iTs.Kp / CTRL.pi_iTs.Ti * TS;
     CTRL.pi_iTs.i_state = 0.0;
-    CTRL.pi_iTs.i_limit = 650; // unit: Volt, 350V->max 1300rpm
+    CTRL.pi_iTs.i_limit = 350; // unit: Volt, 350V->max 1300rpm
     memcpy(&sPi_Iq, &CTRL.pi_iTs, sizeof(sPi_Iq));
 
     printf("Kp_cur=%g, Ki_cur=%g\n", CTRL.pi_iMs.Kp, CTRL.pi_iMs.Ki);
@@ -407,6 +407,8 @@ double sign(double x)
         return -1;
     }
 }
+#define L_COEFF 1//0.8
+#define R_COEFF 1//1.03
 void harnefors_scvm()
 {
 #define KE_MISMATCH 1.0 // 0.7
@@ -419,8 +421,8 @@ void harnefors_scvm()
     double alpha_bw_lpf = CJH_TUNING_A * 0.1 * (1000 * RPM_2_RAD_PER_SEC(ACM.npp)) + CJH_TUNING_B * 2 * LAMBDA * fabs(omg_harnefors);
     // d_axis_emf = CTRL.ud_cmd - 1*CTRL.R*CTRL.id_cmd + omg_harnefors*1.0*CTRL.Lq*CTRL.iq_cmd; // If Ld=Lq.
     // q_axis_emf = CTRL.uq_cmd - 1*CTRL.R*CTRL.iq_cmd - omg_harnefors*1.0*CTRL.Ld*CTRL.id_cmd; // If Ld=Lq.
-    d_axis_emf = CTRL.uMs_cmd - 1 * CTRL.R * CTRL.iMs_cmd + omg_harnefors * 1.0 * CTRL.Lq * CTRL.iTs_cmd; // eemf
-    q_axis_emf = CTRL.uTs_cmd - 1 * CTRL.R * CTRL.iTs_cmd - omg_harnefors * 1.0 * CTRL.Lq * CTRL.iMs_cmd; // eemf
+    d_axis_emf = CTRL.uMs_cmd - 1 * CTRL.R * R_COEFF * CTRL.iMs_cmd + omg_harnefors * 1.0 * L_COEFF * CTRL.Lq * CTRL.iTs_cmd; // eemf
+    q_axis_emf = CTRL.uTs_cmd - 1 * CTRL.R * R_COEFF * CTRL.iTs_cmd - omg_harnefors * 1.0 * CTRL.Lq * CTRL.iMs_cmd;       // eemf
     // Note it is bad habit to write numerical integration explictly like this. The states on the right may be accencidentally modified on the run.
     omg_harnefors += TS * alpha_bw_lpf * ((q_axis_emf - lambda_s * d_axis_emf) / (CTRL.KE * KE_MISMATCH + (CTRL.Ld - CTRL.Lq) * CTRL.iMs_cmd) - omg_harnefors);
     theta_d_harnefors += TS * omg_harnefors;
@@ -433,7 +435,7 @@ void harnefors_scvm()
     {
         theta_d_harnefors += 2 * M_PI;
     }
-    dbg_tst(15, omg_harnefors);
+    dbg_tst(15, omg_harnefors * RAD_PER_SEC_2_RPM(ACM.npp));
     dbg_tst(17, theta_d_harnefors);
     dbg_tst(18, d_axis_emf);
     dbg_tst(19, q_axis_emf);
@@ -485,11 +487,12 @@ void control(double speed_cmd, double speed_cmd_dot)
         CTRL.speed_ctrl_err = CTRL.omg_ctrl_err * RAD_PER_SEC_2_RPM(ACM.npp);
     }
 
-    if (fabs(CTRL.omg_fb) > 0.3 * 160)
+            /*     if (fabs(CTRL.omg_fb) > 0.2 * 2000)
     {
         CTRL.iMs_cmd = CTRL.rotor_flux_cmd / CTRL.Ld;
+        printf("Over gate!");
     }
-    else
+    else */
     {
         CTRL.iMs_cmd = CTRL.iTs_cmd / LAMBDA * sign(CTRL.omg_fb);
     }
@@ -552,6 +555,7 @@ void control(double speed_cmd, double speed_cmd_dot)
     harnefors_scvm();
     CTRL.omg_fb = omg_harnefors;
     CTRL.theta_M = theta_d_harnefors;
+
 #endif
 }
 
