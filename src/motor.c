@@ -53,7 +53,14 @@ static void rK5_dynamics(double t, double *x, double *fx, double ld)
 
     // mechanical model
     ACM.Tem = ACM.npp * (x[1] * ACM.KE + (ld - ACM.Lq) * x[0] * x[1]);
+
     fx[2] = (ACM.Tem - ACM.Tload) * ACM.mu_m; // elec. angular rotor speed
+    // if (ACM.uq > 0.0)
+    {
+        // ACM.Tload = ACM.Tem - 0.2;
+        // ACM.Tload = ACM.Tem;
+        // x[2] = 0.5;
+    }
     fx[3] = x[2];                             // elec. angular rotor position
 #endif
 }
@@ -193,7 +200,7 @@ int machine_simulation(double ud, double uq)
     }
     else if (xx[3] < -M_PI)
     {
-        xx[3] += 2 * M_PI; // 坝转
+        xx[3] += 2 * M_PI;
     }
     ACM.theta_d = xx[3];
 
@@ -213,9 +220,8 @@ int machine_simulation(double ud, double uq)
     dbg_tst(19, ACM.phid);
     dbg_tst(20, ACM.phiq);
     dbg_tst(21, atan2f(-ACM.Ea, ACM.Eb));
-    dbg_tst(22, ACM.id);
-    dbg_tst(23, ACM.iq);
-
+    dbg_tst(26, ACM.ial);
+    dbg_tst(27, ACM.ibe);
 #endif
 
     if (isNumber(ACM.rpm))

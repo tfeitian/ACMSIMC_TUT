@@ -8,6 +8,7 @@
 #include "userdefine.h"
 #include "ramp.h"
 #include "tools.h"
+#include "fixpoint.h"
 
 static float g_fTest[20];
 float param[10] = {60, 20, 0.1, 2};
@@ -42,6 +43,7 @@ int main(int argc, char *argv[])
     CTRL_init();
     acm_init();
     ob_init();
+    fix_vinit();
     // socket_vinit();
     smo_vInit(ACM.R, ACM.L0);
 
@@ -112,11 +114,12 @@ int main(int argc, char *argv[])
 
             write_data_to_file(fw);
 
-            control(ramp(rpm_cmd, param[E_RAMP_TIME], TS), 0);
+            // control(ramp(rpm_cmd, param[E_RAMP_TIME], TS), 0);
             // openloop_control(0, 0, timebase);
+            fix_vControl(ramp(rpm_cmd, param[E_RAMP_TIME], TS), 0);
         }
 
-        inverter_model(CTRL.ual, CTRL.ube, sm.theta_d, &ud, &uq);
+        inverter_model(CTRL.ual, CTRL.ube, ACM.theta_d, &ud, &uq);
     }
     end = clock();
     printf("The simulation in C costs %g sec.\n", (double)(end - begin) / CLOCKS_PER_SEC);
@@ -158,9 +161,9 @@ void write_data_to_file(FILE *fw)
                     ob.psi_mu_al, ob.tajima.omg * RAD_PER_SEC_2_RPM(ACM.npp));
 #elif MACHINE_TYPE == SYNCHRONOUS_MACHINE
             fprintf(fw, "%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g\n",
-                    ACM.id, ACM.iq, ACM.omg * RAD_PER_SEC_2_RPM(ACM.npp), ACM.theta_d,
-                    CTRL.uMs_cmd, CTRL.uTs_cmd, CTRL.iMs_cmd, CTRL.iMs,
-                    CTRL.iTs_cmd, CTRL.iTs, g_fTest[0],
+                    ACM.id, ACM.iq, ACM.omg * RAD_PER_SEC_2_RPM(ACM.npp), ACM.theta_d, //3
+                    CTRL.uMs_cmd, CTRL.uTs_cmd, CTRL.iMs_cmd, CTRL.iMs,                //7
+                    ACM.Tload, ACM.Tem, g_fTest[0],
                     g_fTest[1], g_fTest[2], g_fTest[3],
                     g_fTest[4], g_fTest[5], g_fTest[6],
                     g_fTest[7], g_fTest[8], g_fTest[9],

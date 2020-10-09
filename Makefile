@@ -17,7 +17,10 @@ src/socket.c \
 src/cJSON.c \
 src/inverter.c \
 src/motor.c \
-src/ramp.c
+src/ramp.c \
+src/fixpoint.c \
+src/MatrixConvert.c \
+src/PI_Adjuster.c
 
 CC = $(PREFIX)gcc
 

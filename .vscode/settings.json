@@ -14,6 +14,8 @@
         "cmath": "c",
         "tools.h": "c",
         "limits": "c",
-        "*.tcc": "c"
+        "*.tcc": "c",
+        "MatrixConvert.c": "c",
+        "cstdint": "cpp"
     }
 }

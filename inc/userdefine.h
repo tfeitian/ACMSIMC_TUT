@@ -1,5 +1,6 @@
 #ifndef USER_DEFINIE_H
 #define USER_DEFINIE_H
+#include <stdint.h>
 /* Macro for Part Transformation*/
 #define AB2M(A, B, COS, SIN) ((A)*COS + (B)*SIN)
 #define AB2T(A, B, COS, SIN) ((A) * -SIN + (B)*COS)
@@ -34,4 +35,11 @@
 #define MIN(a, b) ((a > b ? b : a))
 #define LIMIT(x, a, b) (MAX(MIN(x, a), b))
 
+typedef uint16_t u16;
+typedef uint32_t u32;
+typedef int16_t s16;
+typedef int32_t s32;
+typedef uint8_t u8;
+typedef long long s64;
+typedef unsigned long long u64;
 #endif // !USER_DEFINIE_H
