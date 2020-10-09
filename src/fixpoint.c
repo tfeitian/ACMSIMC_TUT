@@ -20,8 +20,10 @@ void fix_vinit(void)
     PidReg_Intialize(&SpeedRegulate);
     /*Speed colsed loop  */
     SpeedRegulate.inputs.Ref = FP_SPEED(MAX_SPEED_RPM);
-    SpeedRegulate.inputs.Kp = 512;
-    SpeedRegulate.inputs.Ki = 300;
+    SpeedRegulate.inputs.Kp = 5120;
+    SpeedRegulate.inputs.Ki = 30;
+    //(SpeedRegulate.inputs.Kp * 4.77) / 5 *
+    (TS * VC_LOOP_CEILING * DOWN_FREQ_EXE_INVERSE);
     SpeedRegulate.inputs.Kc = 32768 / 4;
     SpeedRegulate.OutMax = FP_CURRENT(MAX_CURRENT_PEAK);
     SpeedRegulate.OutMin = 0;
@@ -68,7 +70,7 @@ void fix_measure()
 
 s16 fix_sign(s16 s16w)
 {
-    if (s16w > 0)
+    if (s16w >= 0)
     {
         return 1;
     }
@@ -96,6 +98,7 @@ void fix_vControl(double speed_cmd, double speed_cmd_dot)
         wref = FP_SPEED(speed_cmd);
         SpeedRegulate.inputs.Fdb = wfb;
         SpeedRegulate.inputs.Ref = wref;
+        dbg_tst(17, wref - wfb);
         PidReg_Calculate(&SpeedRegulate);
         if (speed_cmd > 0)
         {
@@ -103,16 +106,15 @@ void fix_vControl(double speed_cmd, double speed_cmd_dot)
         }
         iq_cmd = SpeedRegulate.outputs.Out;
         dbg_tst(24, wref);
-        dbg_tst(25, iq_cmd);
+        dbg_tst(25, wfb);
     }
+    id_cmd = iq_cmd / LAMBDA * fix_sign(wfb);
 
     fp_abtodq(ia, ib, theta, &id, &iq);
-    dbg_tst(22, ia);
-    dbg_tst(23, ib);
+    dbg_tst(22, id_cmd);
+    dbg_tst(23, iq_cmd);
 
     dbg_tst(15, theta);
-    id_cmd = 0;
-    //iq_cmd / LAMBDA *fix_sign(wfb);
 
     dbg_tst(13, id);
     dbg_tst(14, iq);

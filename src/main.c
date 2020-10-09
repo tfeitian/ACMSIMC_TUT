@@ -11,7 +11,7 @@
 #include "fixpoint.h"
 
 static float g_fTest[20];
-float param[10] = {60, 20, 0.1, 2};
+float param[10] = {100, 0, 0, 2};
 
 void write_input(int argc, char *argv[])
 {
@@ -55,12 +55,16 @@ int main(int argc, char *argv[])
     clock_t begin, end;
     double timebase = 0.0f;
     begin = clock();
-    int _;       // _ for the outer iteration
+    int sim_step; // _ for the outer iteration
     int dfe = 0; // dfe for down frequency execution
 
     double ud = 0.0, uq = 0.0, rpm_cmd = 0.0;
-    for (_ = 0; _ < NUMBER_OF_LINES; ++_)
+    for (sim_step = 0; sim_step < NUMBER_OF_LINES; sim_step++)
     {
+        if (sim_step > 70000)
+        {
+            ACM.Tload = 0;
+        }
         /* Command and Load Torque */
         if (timebase > 3.5)
         {
