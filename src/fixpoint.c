@@ -20,8 +20,8 @@ void fix_vinit(void)
     PidReg_Intialize(&SpeedRegulate);
     /*Speed colsed loop  */
     SpeedRegulate.inputs.Ref = FP_SPEED(MAX_SPEED_RPM);
-    SpeedRegulate.inputs.Kp = 5120;
-    SpeedRegulate.inputs.Ki = 30;
+    SpeedRegulate.inputs.Kp = 8120;
+    SpeedRegulate.inputs.Ki = 300;
     //(SpeedRegulate.inputs.Kp * 4.77) / 5 *
     (TS * VC_LOOP_CEILING * DOWN_FREQ_EXE_INVERSE);
     SpeedRegulate.inputs.Kc = 32768 / 4;
