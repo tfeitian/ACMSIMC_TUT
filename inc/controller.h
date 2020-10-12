@@ -120,6 +120,7 @@ struct ControllerForExperiment
 #endif
 extern struct ControllerForExperiment CTRL;
 
+double PI(struct PI_Reg *r, double err);
 void CTRL_init();
 void control(double speed_cmd, double speed_cmd_dot);
 void measurement();

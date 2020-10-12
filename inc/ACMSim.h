@@ -29,7 +29,6 @@
 #define MTPA -2 // not supported
 #define CONTROL_STRATEGY NULL_D_AXIS_CURRENT_CONTROL
 
-#define SENSORLESS_CONTROL false
 #endif
 
 /* How long should I go? */

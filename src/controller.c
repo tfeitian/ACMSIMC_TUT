@@ -6,9 +6,11 @@
 #include "tools.h"
 #include "string.h"
 #include "userdefine.h"
+
+#define USING_HARNEFORS 0
 /* PI Control
  * */
-static double PI(struct PI_Reg *r, double err)
+double PI(struct PI_Reg *r, double err)
 {
     double output;
     r->i_state += err * r->Ki;   // 积分
@@ -240,6 +242,7 @@ static double Vinj = 0;
 static double whfi = 400 * 2 * M_PI;
 static double theta_hfi = 0;
 
+struct PI_Reg sPi_Speed;
 struct PI_Reg sPi_Id;
 struct PI_Reg sPi_Iq;
 
@@ -303,6 +306,7 @@ void CTRL_init()
                        (TS * VC_LOOP_CEILING * DOWN_FREQ_EXE_INVERSE);
     CTRL.pi_speed.i_state = 0.0;
     CTRL.pi_speed.i_limit = 8;
+    memcpy(&sPi_Speed, &CTRL.pi_speed, sizeof(sPi_Speed));
 
     printf("Kp_omg=%g, Ki_omg=%g\n", CTRL.pi_speed.Kp, CTRL.pi_speed.Ki);
 
@@ -393,8 +397,8 @@ void openloop_control(double speed_cmd, double speed_cmd_dot, double runtine)
 
     dqtoab(ud, uq, rotortheta0, &CTRL.ual, &CTRL.ube);
 }
-double theta_d_harnefors = 0.0;
-double omg_harnefors = 0.0;
+static double theta_d_harnefors = 0.0;
+static double omg_harnefors = 0.0;
 
 double sign(double x)
 {
@@ -435,20 +439,21 @@ void harnefors_scvm()
     {
         theta_d_harnefors += 2 * M_PI;
     }
-    dbg_tst(15, omg_harnefors * RAD_PER_SEC_2_RPM(ACM.npp));
-    dbg_tst(17, theta_d_harnefors);
+    dbg_tst(29, omg_harnefors * RAD_PER_SEC_2_RPM(ACM.npp));
+    dbg_tst(28, theta_d_harnefors);
     dbg_tst(18, d_axis_emf);
     dbg_tst(19, q_axis_emf);
 }
 
 void control(double speed_cmd, double speed_cmd_dot)
 {
-// Input 1 is feedback: estimated speed or measured speed
+    // Input 1 is feedback: estimated speed or measured speed
+    dbg_tst(15, CTRL.theta_M);
 
     // Input 2 is feedback: measured current
     CTRL.ial_fb = sm.is_curr[0];
     CTRL.ibe_fb = sm.is_curr[1];
-// Input 3 is the rotor d-axis position
+    // Input 3 is the rotor d-axis position
 #if SENSORLESS_CONTROL
     // getch("Not Implemented");
 #else
@@ -487,7 +492,11 @@ void control(double speed_cmd, double speed_cmd_dot)
         CTRL.speed_ctrl_err = CTRL.omg_ctrl_err * RAD_PER_SEC_2_RPM(ACM.npp);
     }
 
-            /*     if (fabs(CTRL.omg_fb) > 0.2 * 2000)
+    dbg_tst(24, speed_cmd);
+    dbg_tst(25, CTRL.omg_fb * RAD_PER_SEC_2_RPM(ACM.npp));
+    dbg_tst(17, CTRL.omg_ctrl_err);
+
+    /*     if (fabs(CTRL.omg_fb) > 0.2 * 2000)
     {
         CTRL.iMs_cmd = CTRL.rotor_flux_cmd / CTRL.Ld;
         printf("Over gate!");
@@ -525,6 +534,12 @@ void control(double speed_cmd, double speed_cmd_dot)
     vM = -PI(&CTRL.pi_iMs, CTRL.iMs - CTRL.iMs_cmd);
     vT = -PI(&CTRL.pi_iTs, CTRL.iTs - CTRL.iTs_cmd);
 
+    dbg_tst(11, vM);
+    dbg_tst(12, vT);
+    dbg_tst(13, CTRL.iMs);
+    dbg_tst(14, CTRL.iTs);
+    dbg_tst(22, CTRL.iMs_cmd);
+    dbg_tst(23, CTRL.iTs_cmd);
 #if ANGLE_DETECTION_HFI == 1
     float fHFI = HFI_Voltage(TS);
 #else
@@ -541,7 +556,7 @@ void control(double speed_cmd, double speed_cmd_dot)
     CTRL.uq_cmd = CTRL.uTs_cmd;
     CTRL.iq_cmd = CTRL.iTs_cmd;
     CTRL.id_cmd = CTRL.iMs_cmd; */
-#if SENSORLESS_CONTROL
+#if USING_HARNEFORS == 1
     // getch("Not Implemented");
     // CTRL.omg_fb    ;
     // CTRL.omega_syn ;
@@ -549,13 +564,8 @@ void control(double speed_cmd, double speed_cmd_dot)
     CTRL.omg_fb = omg_harnefors;
     CTRL.theta_M = theta_d_harnefors;
 #else
-    // CTRL.omg_fb = sm.omg;
-    // CTRL.theta_M = sm.theta_d;
-
-    harnefors_scvm();
-    CTRL.omg_fb = omg_harnefors;
-    CTRL.theta_M = theta_d_harnefors;
-
+    CTRL.omg_fb = sm.omg;
+    CTRL.theta_M = sm.theta_d;
 #endif
 }
 

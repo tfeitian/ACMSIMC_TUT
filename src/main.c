@@ -9,8 +9,10 @@
 #include "ramp.h"
 #include "tools.h"
 #include "fixpoint.h"
+#include <assert.h>
 
-static float g_fTest[20];
+#define MAX_LOG_CNTS 20
+static float g_fTest[MAX_LOG_CNTS];
 float param[10] = {100, 0, 0, 2};
 
 void write_input(int argc, char *argv[])
@@ -117,10 +119,12 @@ int main(int argc, char *argv[])
             ob.theta = smo_vCalc(sm.is_curr[0], sm.is_curr[1], CTRL.ual, CTRL.ube, sm.omg);
 
             write_data_to_file(fw);
-
-            // control(ramp(rpm_cmd, param[E_RAMP_TIME], TS), 0);
+#if FLOAT_CONTROL == 1
+            control(ramp(rpm_cmd, param[E_RAMP_TIME], TS), 0);
             // openloop_control(0, 0, timebase);
+#else
             fix_vControl(ramp(rpm_cmd, param[E_RAMP_TIME], TS), 0);
+#endif
         }
 
         inverter_model(CTRL.ual, CTRL.ube, ACM.theta_d, &ud, &uq);
@@ -201,5 +205,6 @@ void write_data_to_file(FILE *fw)
 
 void dbg_tst(int tnum, float fnum)
 {
+    assert(tnum - 10 < MAX_LOG_CNTS);
     g_fTest[tnum - 10] = fnum;
 }

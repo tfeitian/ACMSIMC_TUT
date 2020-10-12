@@ -5,6 +5,9 @@
 #include "motor.h"
 #include "MatrixConvert.h"
 #include "tools.h"
+#include "controller.h"
+
+#define USE_HARNEFORS 1
 
 PIDREG_OBJECT IdRegulate;
 PIDREG_OBJECT IqRegulate;
@@ -13,7 +16,12 @@ PIDREG_OBJECT SpeedRegulate;
 static u16 theta = 0;
 static s16 wfb = 0, ia = 0, ib = 0, iq_cmd = 0;
 
+static float theta_d_harnefors = 0;
+static float w_harnefors = 0;
+
 #define LAMBDA 2
+
+static void fix_harnefors_svcm(float ud, float uq, float id, float iq);
 
 void fix_vinit(void)
 {
@@ -64,6 +72,10 @@ void fix_measure()
 {
     theta = FP_THETA(ACM.theta_d);
     wfb = FP_SPEED(ACM.omg);
+#if USE_HARNEFORS == 1
+    theta = FP_THETA(theta_d_harnefors);
+    wfb = FP_SPEED(w_harnefors);
+#endif
     ia = FP_CURRENT(ACM.ial);
     ib = FP_CURRENT(ACM.ibe);
 }
@@ -91,20 +103,27 @@ void fix_vControl(double speed_cmd, double speed_cmd_dot)
 
     fix_measure();
     //speed loop
+
     if (vc_count++ == VC_LOOP_CEILING * DOWN_FREQ_EXE_INVERSE)
     {
         vc_count = 0;
 
-        wref = FP_SPEED(speed_cmd);
+        wref = FP_SPEED(speed_cmd * RPM_2_RAD_PER_SEC(ACM.npp));
         SpeedRegulate.inputs.Fdb = wfb;
         SpeedRegulate.inputs.Ref = wref;
         dbg_tst(17, wref - wfb);
         PidReg_Calculate(&SpeedRegulate);
         if (speed_cmd > 0)
         {
-            // iq_cmd = 1000;
+            iq_cmd = 1000;
+        }
+        if (speed_cmd >= 200)
+        {
+            iq_cmd = 0;
         }
         iq_cmd = SpeedRegulate.outputs.Out;
+
+        iq_cmd = FP_CURRENT(-PI(&sPi_Speed, ACM.omg - speed_cmd * RPM_2_RAD_PER_SEC(ACM.npp)));
         dbg_tst(24, wref);
         dbg_tst(25, wfb);
     }
@@ -119,6 +138,7 @@ void fix_vControl(double speed_cmd, double speed_cmd_dot)
     dbg_tst(13, id);
     dbg_tst(14, iq);
 
+#if FIX_IQ_PID == 1
     IdRegulate.inputs.Fdb = id;
     IdRegulate.inputs.Ref = id_cmd;
     IqRegulate.inputs.Fdb = iq;
@@ -126,13 +146,58 @@ void fix_vControl(double speed_cmd, double speed_cmd_dot)
 
     PidReg_Calculate(&IdRegulate);
     PidReg_Calculate(&IqRegulate);
-
     ud = IdRegulate.outputs.Out;
     uq = IqRegulate.outputs.Out;
+#else
+    double fud, fuq, fid, fiq;
+
+    double a = (double)FLOAT_I(iq - iq_cmd);
+
+    fud = -PI(&sPi_Id, (double)FLOAT_I(id - id_cmd));
+    fuq = -PI(&sPi_Iq, a);
+    ud = FP_VOLTAGE(fud);
+    uq = FP_VOLTAGE(fuq);
+#endif
     dbg_tst(11, ud);
     dbg_tst(12, uq);
 
     fp_dqtoab(ud, uq, theta, &ua, &ub);
     CTRL.ual = VOLTAGE_U16_TO_FLOAT(ua);
     CTRL.ube = VOLTAGE_U16_TO_FLOAT(ub);
+
+    fix_harnefors_svcm(FLOAT_V(ud), FLOAT_V(uq), FLOAT_I(id), FLOAT_I(iq));
+    // fix_harnefors_svcm(-7.089844, 67.031250, -0.936890, -0.003052);
+    dbg_tst(28, FP_THETA(theta_d_harnefors));
+    dbg_tst(29, FP_SPEED(w_harnefors));
+}
+
+#define LAMBDA 2        // 2
+#define CJH_TUNING_A 1  // 1
+#define CJH_TUNING_B 1  // 1
+#define KE_MISMATCH 1.0 // 0.7
+#define L_COEFF 1       //0.8
+#define R_COEFF 1       //1.03
+
+void fix_harnefors_svcm(float ud, float uq, float id, float iq)
+{
+    // printf("%f  %f  %f  %f\n", ud, uq, id, iq);
+    s16 lambda_s = LAMBDA * fix_sign(theta_d_harnefors);
+    // s16 alpha_bw_lpf = CJH_TUNING_A *
+    double d_axis_emf;
+    double q_axis_emf;
+
+    double alpha_bw_lpf = CJH_TUNING_A * 0.1 * (1000 * RPM_2_RAD_PER_SEC(ACM.npp)) + CJH_TUNING_B * 2 * LAMBDA * fabs(w_harnefors);
+    d_axis_emf = ud - 1 * CTRL.R * R_COEFF * id + w_harnefors * 1.0 * L_COEFF * CTRL.Lq * iq; // eemf
+    q_axis_emf = uq - 1 * CTRL.R * R_COEFF * iq - w_harnefors * 1.0 * CTRL.Lq * id;           // eemf
+    w_harnefors += TS * alpha_bw_lpf * ((q_axis_emf - lambda_s * d_axis_emf) / (CTRL.KE * KE_MISMATCH) - w_harnefors);
+    theta_d_harnefors += TS * w_harnefors;
+
+    if (theta_d_harnefors > M_PI)
+    {
+        theta_d_harnefors -= 2 * M_PI;
+    }
+    if (theta_d_harnefors < -M_PI)
+    {
+        theta_d_harnefors += 2 * M_PI;
+    }
 }

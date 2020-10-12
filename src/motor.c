@@ -54,11 +54,11 @@ static void rK5_dynamics(double t, double *x, double *fx, double ld)
     // mechanical model
     ACM.Tem = ACM.npp * (x[1] * ACM.KE + (ld - ACM.Lq) * x[0] * x[1]);
 
+    // ACM.Tload = ACM.Tem;
     fx[2] = (ACM.Tem - ACM.Tload) * ACM.mu_m; // elec. angular rotor speed
     // if (ACM.uq > 0.0)
     {
         // ACM.Tload = ACM.Tem - 0.2;
-        // ACM.Tload = ACM.Tem;
         // x[2] = 0.5;
     }
     fx[3] = x[2];                             // elec. angular rotor position
