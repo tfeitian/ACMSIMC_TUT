@@ -26,19 +26,21 @@
       // 基于准备好的dom，初始化echarts实例
       var datas = document.getElementById("xAxis").value;
       var data2 = document.getElementById("series").value;
-      var xAxis = datas.split(",");
+      var xAxiso = datas.split(",");
       var series = data2.split(",");
 
-      function arrTrans(num, arr) {
+      function arrTrans(num, arr, dcnts) {
         const newArr = [];
-        //num = 19000;
+        //num = 1995;
         while (arr.length > 0) {
-          newArr.push(arr.splice(0, num));
+          var tem = arr.splice(0, num);
+          newArr.push(tem.splice(0, dcnts));
         }
         return newArr;
       }
 
-      temp = arrTrans(xAxis.length, series);
+      temp = arrTrans(xAxiso.length, series, xAxiso.length - 30);
+      xAxis = xAxiso.slice(0, xAxiso.length - 30);
       aa = [];
       for (var i = 0; i < temp.length; i++) {
         aa.push({
@@ -123,8 +125,9 @@
 
       charts = [];
       charts.push(showone([28,15]))
-      charts.push(showone([13,14, 22, 23]))
-      charts.push(showone([29, 24,25]))
+      charts.push(showone([8, 9]))
+      charts.push(showone([2, 24, 25]))
+      charts.push(showone([23]))
       charts.push(showone([17]))
             //charts.push(showone([18,19]))
       //charts.push(showone([15, 3]))
@@ -132,7 +135,7 @@
       //charts.push(showone([4, 5]))
       charts.push(showone([11,12]))
       charts.push(showone([2,3]))
-      charts.push(showone([15]))
+      charts.push(showone([15, 3, 14]))
       //charts.push(showone([25]));
       //charts.push(showone([29, 17, 18]));
       //charts.push(showone([13]));
@@ -149,6 +152,11 @@
       //      charts.push(showone([22, 23]));
       //      charts.push(showone([19, 20]));
       charts.push(showone([0, 1, 26, 27]));
+      charts.push(showone([4, 5]))
+      charts.push(showone([6, 7]))
+      charts.push(showone([13]))
+      charts.push(showone([20, 21]))
+      charts.push(showone([16, 18]))
       //linkage
       //echarts.connect([charts[0], charts[1]]);
       //echarts.connect([charts[2], charts[3]]);

@@ -42,6 +42,7 @@ typedef int32_t s32;
 typedef uint8_t u8;
 typedef long long s64;
 typedef unsigned long long u64;
+typedef _Bool bool;
 
-#define FLOAT_CONTROL 1
+#define CONTROL_METHOD VF_CONTROL
 #endif // !USER_DEFINIE_H

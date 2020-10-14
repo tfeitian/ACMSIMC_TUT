@@ -10,10 +10,11 @@
 #include "tools.h"
 #include "fixpoint.h"
 #include <assert.h>
+#include "VFControl.h"
 
 #define MAX_LOG_CNTS 20
 static float g_fTest[MAX_LOG_CNTS];
-float param[10] = {100, 0, 0, 2};
+float param[10] = {100, 0, 0, 2, NUMBER_OF_LINES};
 
 void write_input(int argc, char *argv[])
 {
@@ -27,11 +28,11 @@ void write_input(int argc, char *argv[])
 }
 int main(int argc, char *argv[])
 {
-    printf("NUMBER_OF_LINES: %d\n\n", NUMBER_OF_LINES);
     for (int i = 0; i < MIN(10, argc - 1); i++)
     {
         param[i] = atof(argv[i + 1]);
     }
+    printf("NUMBER_OF_LINES: %d\n\n", param[E_RUN_TIME]);
 
     printf("Parameter cnt is %d!\n", argc);
     for (int i = 0; i < (sizeof(param) / sizeof(param[0])); i++)
@@ -61,7 +62,7 @@ int main(int argc, char *argv[])
     int dfe = 0; // dfe for down frequency execution
 
     double ud = 0.0, uq = 0.0, rpm_cmd = 0.0;
-    for (sim_step = 0; sim_step < NUMBER_OF_LINES; sim_step++)
+    for (sim_step = 0; sim_step < param[E_RUN_TIME]; sim_step++)
     {
         if (sim_step > 70000)
         {
@@ -96,7 +97,6 @@ int main(int argc, char *argv[])
                 ACM.Tload = 10;
             }
         }
-        dbg_tst(16, ACM.Tload);
 
         /* Simulated ACM */
         if (machine_simulation(ud, uq))
@@ -119,10 +119,16 @@ int main(int argc, char *argv[])
             ob.theta = smo_vCalc(sm.is_curr[0], sm.is_curr[1], CTRL.ual, CTRL.ube, sm.omg);
 
             write_data_to_file(fw);
-#if FLOAT_CONTROL == 1
+
+#if CONTROL_METHOD == VF_CONTROL
+            // if (pre_run(rpm_cmd, 0))
+            {
+                vf_control(ramp(rpm_cmd, param[E_RAMP_TIME], TS), 0);
+                // vf_control(rpm_cmd, 0);
+            }
+#elif CONTROL_METHOD == FLOAT_CONTROL
             control(ramp(rpm_cmd, param[E_RAMP_TIME], TS), 0);
-            // openloop_control(0, 0, timebase);
-#else
+#elif CONTROL_METHOD == FIX_CONTROL
             fix_vControl(ramp(rpm_cmd, param[E_RAMP_TIME], TS), 0);
 #endif
         }
@@ -169,8 +175,8 @@ void write_data_to_file(FILE *fw)
                     ob.psi_mu_al, ob.tajima.omg * RAD_PER_SEC_2_RPM(ACM.npp));
 #elif MACHINE_TYPE == SYNCHRONOUS_MACHINE
             fprintf(fw, "%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g\n",
-                    ACM.id, ACM.iq, ACM.omg * RAD_PER_SEC_2_RPM(ACM.npp), ACM.theta_d, //3
-                    CTRL.uMs_cmd, CTRL.uTs_cmd, CTRL.iMs_cmd, CTRL.iMs,                //7
+                    ACM.id, ACM.iq, ACM.omg, ACM.theta_d, //3
+                    ACM.ud, ACM.uq, ACM.phid, ACM.phiq,   //7
                     ACM.Tload, ACM.Tem, g_fTest[0],
                     g_fTest[1], g_fTest[2], g_fTest[3],
                     g_fTest[4], g_fTest[5], g_fTest[6],

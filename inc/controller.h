@@ -125,4 +125,5 @@ void CTRL_init();
 void control(double speed_cmd, double speed_cmd_dot);
 void measurement();
 void openloop_control(double speed_cmd, double speed_cmd_dot, double runtine);
+float rounddegree(float xx);
 #endif
