@@ -5,7 +5,7 @@ static float g_ref = 0;
 static float fstep = 0;
 float ramp_init(float fref, float ramptime, float timestep)
 {
-    fstep = fref * timestep / ramptime;
+    fstep = RPM_2_RAD_PER_SEC(1500) * timestep / ramptime;
 }
 float ramp(float fref, float ramptime, float timestep)
 {

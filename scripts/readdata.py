@@ -38,16 +38,20 @@ def read():
 
 #ref,angle,load,ramptime
 def run(*args:"0-ref,1-angle,2-load,3-ramptime"):#reference angle load
+    pname = ["reference", "angle", "load", "ramptime", "vcomp", "runtime"]
+    cmdstr = r"main.exe"
+    for i,v in enumerate(args):
+        cmdstr += " "
+        cmdstr += str(v)
+        print(pname[i] + "---" + str(v))
     path = r"D:\work\sim\ACMSIMC_TUT"
     os.chdir(path)
     os.system("make")
     os.chdir(path+r"\build")
-    cmdstr = r"main.exe"
-    for i in args:
-        cmdstr += " "
-        cmdstr += str(i)
+
     def go():
         os.system(cmdstr)
+
     a = threading.Thread(target = go,)
     a.start()
 

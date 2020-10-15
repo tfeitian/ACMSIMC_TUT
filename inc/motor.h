@@ -35,6 +35,7 @@ struct SynchronousMachineSimulated
     double omg;
     double rpm_deriv_cmd;
     double Tload;
+    double J;
     double Tem;
     double Ea;
     double Eb;

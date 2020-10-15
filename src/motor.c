@@ -54,8 +54,9 @@ static void rK5_dynamics(double t, double *x, double *fx, double ld)
     // mechanical model
     ACM.Tem = ACM.npp * (x[1] * ACM.KE + (ld - ACM.Lq) * x[0] * x[1]);
 
-    // ACM.Tload = ACM.Tem;
-    fx[2] = (ACM.Tem - ACM.Tload) * ACM.mu_m; // elec. angular rotor speed
+    dbg_tst(22, ACM.omg * ACM.omg);
+    ACM.Tload = ACM.omg * ACM.omg / 800.0;
+    fx[2] = (ACM.Tem - ACM.Tload) * ACM.mu_m / ACM.J; // elec. angular rotor speed
     // if (ACM.uq > 0.0)
     {
         // ACM.Tload = ACM.Tem - 0.2;
@@ -152,6 +153,9 @@ void Machine_init()
     ACM.Ld = motorData[1] * 1e-3 * 0.99;
     ACM.Lq = motorData[2] * 1e-3;
     ACM.Bemf = motorData[3];
+
+    ACM.J = 1;
+    //6.4;
     //0.3375; // = backemf_rms@1000rpm/1000/pole pairs*13.5
     //0.504; // Vs/rad
     ACM.L0 = 0.5 * (ACM.Ld + ACM.Lq);

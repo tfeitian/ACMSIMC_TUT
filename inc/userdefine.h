@@ -1,6 +1,7 @@
 #ifndef USER_DEFINIE_H
 #define USER_DEFINIE_H
 #include <stdint.h>
+#include "math.h"
 /* Macro for Part Transformation*/
 #define AB2M(A, B, COS, SIN) ((A)*COS + (B)*SIN)
 #define AB2T(A, B, COS, SIN) ((A) * -SIN + (B)*COS)

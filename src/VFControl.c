@@ -7,25 +7,7 @@
 double wset, vout, theta = 0;
 //- M_PI / 4;
 
-double HighPassFilter_RC_1order(double *Vi, double *Vi_p, double *Vo_p, double sampleFrq)
-{
-    double Vo;
-    double CutFrq, RC, Coff;
-
-    //high pass filter @cutoff frequency = 0.5 Hz
-    CutFrq = 50;
-    RC = (double)1.0 / 2.0 / M_PI / CutFrq;
-    Coff = RC / (RC + 1 / sampleFrq);
-    Vo = ((*Vi) - (*Vi_p) + (*Vo_p)) * Coff;
-
-    //update
-    *Vo_p = Vo;
-    *Vi_p = *Vi;
-
-    return Vo;
-}
-
-double power_p, dw_p;
+float power_p, dw_p;
 
 static int pretime = 1;
 static double precnt = 0;
@@ -45,8 +27,10 @@ bool pre_run(double speed_cmd, double speed_cmd_dot)
     return true;
 }
 
+static int vc_count = 0;
 void vf_control(double speed_cmd, double speed_cmd_dot)
 {
+
     double K = 20;
     double wref = RPM_2_RAD_PER_SEC(speed_cmd);
 
@@ -66,9 +50,9 @@ void vf_control(double speed_cmd, double speed_cmd_dot)
     dbg_tst(14, is_theta);
     dbg_tst(13, p_angle);
 
-    double power = 3 / 2 * (CTRL.ual * ia + CTRL.ube * ib);
+    float power = 3 / 2 * (CTRL.ual * ia + CTRL.ube * ib);
 
-    double HFP = HighPassFilter_RC_1order(&power, &power_p, &dw_p, 16000);
+    float HFP = HighPassFilter_RC_1order(&power, &power_p, &dw_p, 16000);
     dbg_tst(11, power);
     dbg_tst(12, HFP);
 
@@ -95,7 +79,12 @@ void vf_control(double speed_cmd, double speed_cmd_dot)
     d = MAX(0, a * a + b * b - c * c);
 
     dbg_tst(20, c);
-    vcomp = 10.0 / 200.0f * speed_cmd;
+    vcomp = 15.0 / 200.0f * speed_cmd;
+    if (vcomp > param[E_V_COMP])
+    {
+        vcomp = param[E_V_COMP];
+    }
+    dbg_tst(28, 0.3 * power);
     vout = a + vcomp;
 
     // vout = b + a;
@@ -122,16 +111,13 @@ void vf_control(double speed_cmd, double speed_cmd_dot)
 
     theta = rounddegree(theta);
 
-    CTRL.ual = vout * cos(theta);
-    CTRL.ube = vout * sin(theta);
-    if (!isNumber(CTRL.ual))
+    if (vc_count++ == VC_LOOP_CEILING * DOWN_FREQ_EXE_INVERSE)
     {
-        vout = 0;
+        vc_count = 0;
+        CTRL.ual = vout * cos(theta);
+        CTRL.ube = vout * sin(theta);
     }
-    if (!isNumber(CTRL.ube))
-    {
-        vout = 0;
-    }
+
     dbg_tst(23, dw);
     dbg_tst(24, wset);
     dbg_tst(25, wref);

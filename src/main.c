@@ -11,6 +11,7 @@
 #include "fixpoint.h"
 #include <assert.h>
 #include "VFControl.h"
+#include "vffix.h"
 
 #define MAX_LOG_CNTS 20
 static float g_fTest[MAX_LOG_CNTS];
@@ -123,8 +124,8 @@ int main(int argc, char *argv[])
 #if CONTROL_METHOD == VF_CONTROL
             // if (pre_run(rpm_cmd, 0))
             {
-                vf_control(ramp(rpm_cmd, param[E_RAMP_TIME], TS), 0);
-                // vf_control(rpm_cmd, 0);
+                // vf_control(ramp(rpm_cmd, param[E_RAMP_TIME], TS), 0);
+                vffix_control(ramp(rpm_cmd, param[E_RAMP_TIME], TS), 0);
             }
 #elif CONTROL_METHOD == FLOAT_CONTROL
             control(ramp(rpm_cmd, param[E_RAMP_TIME], TS), 0);
