@@ -12,7 +12,7 @@ float power_p, dw_p;
 static int pretime = 1;
 static double precnt = 0;
 
-bool pre_run(double speed_cmd, double speed_cmd_dot)
+u8 pre_run(double speed_cmd, double speed_cmd_dot)
 {
     if (speed_cmd > 0 && precnt < pretime)
     {

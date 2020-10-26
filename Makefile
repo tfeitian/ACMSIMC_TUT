@@ -23,7 +23,10 @@ src/FixMath.c \
 src/PI_Adjuster.c \
 src/VFControl.c \
 src/tools.c \
-src/vffix.c
+src/vffix.c \
+src/svpwm.c \
+src/PowerModuleCTL.c \
+src/mathtable.c
 
 CC = $(PREFIX)gcc
 

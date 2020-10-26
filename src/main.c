@@ -12,6 +12,7 @@
 #include <assert.h>
 #include "VFControl.h"
 #include "vffix.h"
+#include "Svpwm.h"
 
 #define MAX_LOG_CNTS 20
 static float g_fTest[MAX_LOG_CNTS];
@@ -27,6 +28,7 @@ void write_input(int argc, char *argv[])
     }
     fclose(fw);
 }
+
 int main(int argc, char *argv[])
 {
     for (int i = 0; i < MIN(10, argc - 1); i++)
@@ -125,7 +127,9 @@ int main(int argc, char *argv[])
             // if (pre_run(rpm_cmd, 0))
             {
                 // vf_control(ramp(rpm_cmd, param[E_RAMP_TIME], TS), 0);
-                vffix_control(ramp(rpm_cmd, param[E_RAMP_TIME], TS), 0);
+                // vffix_control(ramp(rpm_cmd, param[E_RAMP_TIME], TS), 0);
+                // ufcontrol(ramp(rpm_cmd, param[E_RAMP_TIME], TS), 0);
+                ufcontrol(rpm_cmd, 0);
             }
 #elif CONTROL_METHOD == FLOAT_CONTROL
             control(ramp(rpm_cmd, param[E_RAMP_TIME], TS), 0);

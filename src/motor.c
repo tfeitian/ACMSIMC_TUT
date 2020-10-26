@@ -55,7 +55,8 @@ static void rK5_dynamics(double t, double *x, double *fx, double ld)
     ACM.Tem = ACM.npp * (x[1] * ACM.KE + (ld - ACM.Lq) * x[0] * x[1]);
 
     dbg_tst(22, ACM.omg * ACM.omg);
-    ACM.Tload = ACM.omg * ACM.omg / 800.0;
+    ACM.Tload = ACM.omg * ACM.omg / 8000.0;
+    // ACM.Tload = ACM.Tem * 0.8;
     fx[2] = (ACM.Tem - ACM.Tload) * ACM.mu_m / ACM.J; // elec. angular rotor speed
     // if (ACM.uq > 0.0)
     {

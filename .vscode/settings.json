@@ -16,6 +16,8 @@
         "limits": "c",
         "*.tcc": "c",
         "MatrixConvert.c": "c",
-        "cstdint": "cpp"
+        "cstdint": "cpp",
+        "SVPWM.C": "cpp",
+        "PowerModuleCTL.C": "cpp"
     }
 }

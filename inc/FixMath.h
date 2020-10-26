@@ -52,6 +52,10 @@ typedef struct
     {                        \
         {0, 0, 0}, {0, 0}, & \
     }
+
+extern const u16 wSin_Table[];
+extern const u16 uwActan_Table[];
+
 void fp_abtodq(s16 ia, s16 ib, u16 u16theta, s16 *id, s16 *iq);
 void fp_dqtoab(s32 ud, s32 uq, u16 theta, s32 *ua, s32 *ub);
 s16 Math_Sin(u16 uwAngle);
