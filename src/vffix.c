@@ -7,6 +7,7 @@
 #include "Fixmath.h"
 #include "svpwm.h"
 #include "PowerModuleCTL.h"
+#include "ramp.h"
 
 static float power_p, dw_p;
 u16 theta;
@@ -81,17 +82,19 @@ u32 u32DcRunTime = 0;
 
 SVGENAB sv1;
 
-void ufcontrol(double speed_cmd, double speed_cmd_dot)
+static bool bsmoInit = false;
+
+s32 ufcontrol(double speed_cmd, double speed_cmd_dot)
 {
     s16 dw = 0;
-    s16 wref0 = FP_SPEED2RAD(speed_cmd); //speed_cmd;
+    s32 wref0 = FP_SPEED2RAD(speed_cmd); //speed_cmd;
     s32 vout, vcomp, wset = 0;
     if (speed_cmd <= 0.1)
     {
-        return;
+        return 0;
     }
 
-        u32DcRunTime++;
+    u32DcRunTime++;
     if (u32DcRunTime < DC_BRAKE_TIME)
     {
         vout = 100;
@@ -108,12 +111,12 @@ void ufcontrol(double speed_cmd, double speed_cmd_dot)
         {
             u16RampStep = RAMP_STEP;
         }
-        if (wsetold < ((s32)wref0 << 10))
+        if (wsetold < ((s64)wref0 << 10))
         {
             wsetold += u16RampStep;
             wref = (wsetold >> 10);
         }
-        else if (wsetold > ((s32)wref0 << 10))
+        else if (wsetold > ((s64)wref0 << 10))
         {
             wsetold -= u16RampStep;
             wref = (wsetold >> 10);
@@ -144,8 +147,23 @@ void ufcontrol(double speed_cmd, double speed_cmd_dot)
 
     // theta = 65535;
 
-    CTRL.ual = FLOAT_V(vout * Math_Cos(theta) >> 15);
-    CTRL.ube = FLOAT_V(vout * Math_Sin(theta) >> 15);
+    if (wref <= FP_SPEED2RAD(250))
+    {
+        CTRL.ual = FLOAT_V(vout * Math_Cos(theta) >> 15);
+        CTRL.ube = FLOAT_V(vout * Math_Sin(theta) >> 15);
+        bsmoInit = false;
+    }
+    else
+    {
+        if (!bsmoInit)
+        {
+            ramp_set(250);
+            bsmoInit = true;
+            CTRL.pi_speed.i_state = 0;
+            CTRL.pi_iMs.i_state = CTRL.iMs;
+            CTRL.pi_iTs.i_state = CTRL.iTs;
+        }
+    }
 
     sv1.Ualpha = CTRL.ual / 400.0 / sqrt(3) * 32768; //vout * Math_Cos(theta) >> 15;
     sv1.Ubeta = CTRL.ube / 400.0 / sqrt(3) * 32768;
@@ -163,4 +181,6 @@ void ufcontrol(double speed_cmd, double speed_cmd_dot)
     dbg_tst(15, theta);
     dbg_tst(14, FP_THETA(ACM.theta_d));
     dbg_tst(21, vcomp);
+
+    return wref;
 }
