@@ -17,13 +17,16 @@
 
 // #define FP_CURRENT(x) ((s16)(x * R_SHUNT * 32768));
 #define FP_VOLTAGE(x) ((s32)((float)(x)*4096 / (VDC_DIV_COFF * 3.3)))
-#define FP_SPEED(x) ((long)((float)(x)*MOTOR_POLES * 32768L) / (60 * Freq_MAX))
+#define FP_SPEED2RAD(x) ((long)((float)(x)*MOTOR_POLES * 32768L * 2 * M_PI / (60 * Freq_MAX)))
 #define FP_THETA(x) (u16)((float)(x)*32768 / M_PI)
+#define FP_RAD(x) ((s16)((float)(x)*32768 / Freq_MAX))
 
 #define FP_UDC(x) ((u32)(float)(x * 4096 / (VDC_DIV_COFF * 3.3)))
 
 #define FLOAT_V(x) ((float)(x)*3.3 * VDC_DIV_COFF / 4096)
 #define FLOAT_I(x) (((float)(x)) / R_SHUNT / 32768)
+#define FLOAT_RAD2SPEED(x) ((float)(x)*60 * Freq_MAX / MOTOR_POLES / 32768 / 2 / M_PI)
+#define FLOAT_RAD(x) ((float)(x)*Freq_MAX / 32768)
 
 extern struct PI_Reg sPi_Speed;
 extern struct PI_Reg sPi_Id;

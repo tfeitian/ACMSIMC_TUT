@@ -120,7 +120,6 @@ int main(int argc, char *argv[])
             // observation();
 
             ob.theta = smo_vCalc(sm.is_curr[0], sm.is_curr[1], CTRL.ual, CTRL.ube, sm.omg);
-
             write_data_to_file(fw);
 
 #if CONTROL_METHOD == VF_CONTROL
@@ -129,6 +128,7 @@ int main(int argc, char *argv[])
                 // vf_control(ramp(rpm_cmd, param[E_RAMP_TIME], TS), 0);
                 // vffix_control(ramp(rpm_cmd, param[E_RAMP_TIME], TS), 0);
                 // ufcontrol(ramp(rpm_cmd, param[E_RAMP_TIME], TS), 0);
+                control(ramp(rpm_cmd, param[E_RAMP_TIME], TS), 0);
                 ufcontrol(rpm_cmd, 0);
             }
 #elif CONTROL_METHOD == FLOAT_CONTROL
@@ -139,6 +139,7 @@ int main(int argc, char *argv[])
         }
 
         inverter_model(CTRL.ual, CTRL.ube, ACM.theta_d, &ud, &uq);
+        dbg_tst(16, ob.theta);
     }
     end = clock();
     printf("The simulation in C costs %g sec.\n", (double)(end - begin) / CLOCKS_PER_SEC);

@@ -54,7 +54,6 @@ static void rK5_dynamics(double t, double *x, double *fx, double ld)
     // mechanical model
     ACM.Tem = ACM.npp * (x[1] * ACM.KE + (ld - ACM.Lq) * x[0] * x[1]);
 
-    dbg_tst(22, ACM.omg * ACM.omg);
     ACM.Tload = ACM.omg * ACM.omg / 8000.0;
     // ACM.Tload = ACM.Tem * 0.8;
     fx[2] = (ACM.Tem - ACM.Tload) * ACM.mu_m / ACM.J; // elec. angular rotor speed
@@ -222,10 +221,10 @@ int machine_simulation(double ud, double uq)
     ACM.Ea = MT2A(ACM.ud, ACM.uq, cos(ACM.theta_d), sin(ACM.theta_d)) - ACM.R * ACM.ial;
     ACM.Eb = MT2B(ACM.ud, ACM.uq, cos(ACM.theta_d), sin(ACM.theta_d)) - ACM.R * ACM.ibe;
     //  -ACM.Ld *xx;
-    dbg_tst(19, ACM.phid);
-    dbg_tst(20, ACM.phiq);
-    dbg_tst(26, ACM.ial);
-    dbg_tst(27, ACM.ibe);
+    // dbg_tst(19, ACM.phid);
+    // dbg_tst(20, ACM.phiq);
+    // dbg_tst(26, ACM.ial);
+    // dbg_tst(27, ACM.ibe);
 #endif
 
     if (isNumber(ACM.rpm))

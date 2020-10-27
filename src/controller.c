@@ -471,7 +471,7 @@ void control(double speed_cmd, double speed_cmd_dot)
     // CTRL.theta_M = xx;
     // CTRL.pi_HFI.i_state = xx;
 #endif
-    // CTRL.theta_M = sm.theta_d;
+    CTRL.theta_M = sm.theta_d;
 #if CONTROL_STRATEGY == NULL_D_AXIS_CURRENT_CONTROL
     // Flux (linkage) command
     CTRL.rotor_flux_cmd = 0.0;
@@ -494,7 +494,7 @@ void control(double speed_cmd, double speed_cmd_dot)
 
     dbg_tst(24, speed_cmd);
     dbg_tst(25, CTRL.omg_fb * RAD_PER_SEC_2_RPM(ACM.npp));
-    dbg_tst(17, CTRL.omg_ctrl_err);
+    dbg_tst(27, CTRL.omg_ctrl_err);
 
     /*     if (fabs(CTRL.omg_fb) > 0.2 * 2000)
     {
@@ -503,7 +503,7 @@ void control(double speed_cmd, double speed_cmd_dot)
     }
     else */
     {
-        CTRL.iMs_cmd = CTRL.iTs_cmd / LAMBDA * sign(CTRL.omg_fb);
+        CTRL.iMs_cmd = 0; //CTRL.iTs_cmd / LAMBDA * sign(CTRL.omg_fb);
     }
 
 #if CONTROL_STRATEGY == NULL_D_AXIS_CURRENT_CONTROL
@@ -537,9 +537,9 @@ void control(double speed_cmd, double speed_cmd_dot)
     dbg_tst(11, vM);
     dbg_tst(12, vT);
     dbg_tst(13, CTRL.iMs);
-    dbg_tst(14, CTRL.iTs);
-    dbg_tst(22, CTRL.iMs_cmd);
-    dbg_tst(23, CTRL.iTs_cmd);
+    // dbg_tst(14, CTRL.iTs);
+    dbg_tst(28, CTRL.iMs_cmd);
+    dbg_tst(29, CTRL.iTs_cmd);
 #if ANGLE_DETECTION_HFI == 1
     float fHFI = HFI_Voltage(TS);
 #else

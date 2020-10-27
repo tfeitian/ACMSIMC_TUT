@@ -16,9 +16,9 @@ s16 wset = 0;
 void vffix_control(double speed_cmd, double speed_cmd_dot)
 {
     s16 dw = 0;
-    s16 wref = FP_SPEED(speed_cmd);
+    s16 wref = FP_SPEED2RAD(speed_cmd);
 
-            /*     if (speed_cmd >= 200)
+    /*     if (speed_cmd >= 200)
     {
         dw = 0;
     } */
@@ -36,7 +36,7 @@ void vffix_control(double speed_cmd, double speed_cmd_dot)
     }
     dbg_tst(23, dw);
     // dw = 0;
-    wset = wref + FP_SPEED(dw);
+    wset = wref + FP_RAD(dw);
 
     s16 vcomp = FP_VOLTAGE(10.0 / 200.0 * speed_cmd);
     if (vcomp > FP_VOLTAGE(10.0))
@@ -84,7 +84,7 @@ SVGENAB sv1;
 void ufcontrol(double speed_cmd, double speed_cmd_dot)
 {
     s16 dw = 0;
-    s16 wref0 = FP_SPEED(speed_cmd);//speed_cmd;
+    s16 wref0 = FP_SPEED2RAD(speed_cmd); //speed_cmd;
     s32 vout, vcomp, wset = 0;
     if (speed_cmd <= 0.1)
     {
@@ -99,6 +99,7 @@ void ufcontrol(double speed_cmd, double speed_cmd_dot)
     }
     else
     {
+
         if (wref < 5000)
         {
             u16RampStep = (RAMP_STEP >>1);
@@ -122,19 +123,21 @@ void ufcontrol(double speed_cmd, double speed_cmd_dot)
     {
         vcomp = FP_VOLTAGE(10.0);
     } */
-        if (vcomp > 78*2)
+
+        if (vcomp > 78 * 2)
         {
-            vcomp = 78*2;
+            vcomp = 78 * 2;
         }
         else if (vcomp < 100)
         {
             vcomp = 100;
         }
-        wset = wref + FP_SPEED(dw);
+
+        wset = wref + FP_RAD(dw);
         // s32 vout = FP_VOLTAGE((float)wset * Fre_MAX * fke / 32768) + vcomp;
         vout = (s32)((s64)wset * 1257 >> 16) + vcomp;
 
-        vout = (s32)(((s64)vout << 2) / 5);
+        // vout = (s32)(((s64)vout << 2) / 5);
         // theta += FP_THETA((float)wset * Fre_MAX / 32768 / PWM_FREQUENCY);
         theta += (u16)((s32)wset * 261 >> 16);
     }
@@ -155,11 +158,9 @@ void ufcontrol(double speed_cmd, double speed_cmd_dot)
 
     dbg_tst(17, vout);
 
-    dbg_tst(24, wset);
-    dbg_tst(25, wref);
+    dbg_tst(26, FLOAT_RAD(wset));
+    // dbg_tst(25, wref);
     dbg_tst(15, theta);
     dbg_tst(14, FP_THETA(ACM.theta_d));
     dbg_tst(21, vcomp);
-
-    dbg_tst(18, vout * Math_Cos(theta) >> 15);
 }

@@ -27,7 +27,7 @@ void fix_vinit(void)
 {
     PidReg_Intialize(&SpeedRegulate);
     /*Speed colsed loop  */
-    SpeedRegulate.inputs.Ref = FP_SPEED(MAX_SPEED_RPM);
+    SpeedRegulate.inputs.Ref = FP_SPEED2RAD(MAX_SPEED_RPM);
     SpeedRegulate.inputs.Kp = 8120;
     SpeedRegulate.inputs.Ki = 300;
     //(SpeedRegulate.inputs.Kp * 4.77) / 5 *
@@ -71,10 +71,10 @@ s16 FP_CURRENT(float finput)
 void fix_measure()
 {
     theta = FP_THETA(ACM.theta_d);
-    wfb = FP_SPEED(ACM.omg);
+    wfb = FP_RAD(ACM.omg);
 #if USE_HARNEFORS == 1
     theta = FP_THETA(theta_d_harnefors);
-    wfb = FP_SPEED(w_harnefors);
+    wfb = FP_RAD(w_harnefors);
 #endif
     ia = FP_CURRENT(ACM.ial);
     ib = FP_CURRENT(ACM.ibe);
@@ -108,7 +108,7 @@ void fix_vControl(double speed_cmd, double speed_cmd_dot)
     {
         vc_count = 0;
 
-        wref = FP_SPEED(speed_cmd * RPM_2_RAD_PER_SEC(ACM.npp));
+        wref = FP_SPEED2RAD(speed_cmd);
         SpeedRegulate.inputs.Fdb = wfb;
         SpeedRegulate.inputs.Ref = wref;
         dbg_tst(17, wref - wfb);
@@ -168,7 +168,7 @@ void fix_vControl(double speed_cmd, double speed_cmd_dot)
     fix_harnefors_svcm(FLOAT_V(ud), FLOAT_V(uq), FLOAT_I(id), FLOAT_I(iq));
     // fix_harnefors_svcm(-7.089844, 67.031250, -0.936890, -0.003052);
     dbg_tst(28, FP_THETA(theta_d_harnefors));
-    dbg_tst(29, FP_SPEED(w_harnefors));
+    dbg_tst(29, FP_RAD(w_harnefors));
 }
 
 #define LAMBDA 2        // 2
