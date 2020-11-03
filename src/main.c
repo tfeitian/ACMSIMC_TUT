@@ -13,6 +13,8 @@
 #include "VFControl.h"
 #include "vffix.h"
 #include "Svpwm.h"
+#include "Fixpoint.h"
+#include "fixsmo.h"
 
 #define MAX_LOG_CNTS 20
 static float g_fTest[MAX_LOG_CNTS];
@@ -52,6 +54,7 @@ int main(int argc, char *argv[])
     fix_vinit();
     // socket_vinit();
     smo_vInit(ACM.R, ACM.L0);
+    fixsmo_init();
 
     FILE *fw;
     fw = fopen("algorithm.dat", "w");
@@ -129,6 +132,9 @@ int main(int argc, char *argv[])
                 // vffix_control(ramp(rpm_cmd, param[E_RAMP_TIME], TS), 0);
                 // ufcontrol(ramp(rpm_cmd, param[E_RAMP_TIME], TS), 0);
                 control(ramp(rpm_cmd, param[E_RAMP_TIME], TS), 0);
+                float ia, ib, ic;
+                f2to3(ACM.ial, ACM.ibe, &ia, &ib);
+                fixsmo_control(FP_CURRENT(ia), FP_CURRENT(ib), FP_VOLTAGE(400));
                 ufcontrol(rpm_cmd, 0);
             }
 #elif CONTROL_METHOD == FLOAT_CONTROL

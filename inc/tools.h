@@ -17,4 +17,6 @@ void dbg_tst(int tnum, float fnum);
 int isNumber(double x);
 double LP_Filter(double fin, double fcoef, double *fold);
 float HighPassFilter_RC_1order(float *Vi, float *Vi_p, float *Vo_p, float sampleFrq);
+
+float f2to3(float ial, float ibe, float *ia, float *ib);
 #endif // !TOOL_H

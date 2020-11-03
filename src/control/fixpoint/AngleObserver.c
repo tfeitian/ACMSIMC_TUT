@@ -1,6 +1,7 @@
 #include "AngleObserver.h"
 #include "Fixmath.h"
 #include "config.h"
+#include "Fixpoint.h"
 
 void AngleObserverInitalize(ANGLE_OBSERVER_OBJECT *p)
 {

@@ -19,5 +19,5 @@
 
 #define RS ((float)6.6)   //13.2ohm
 #define LS ((float)0.075) //150mH
-
+#define OP_GAIN ((float)3.3)
 #endif // !

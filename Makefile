@@ -19,14 +19,14 @@ src/inverter.c \
 src/motor.c \
 src/ramp.c \
 src/fixpoint.c \
-src/FixMath.c \
-src/PI_Adjuster.c \
+src/control/fixpoint/FixMath.c \
+src/control/fixpoint/PI_Adjuster.c \
 src/VFControl.c \
 src/tools.c \
-src/vffix.c \
-src/svpwm.c \
-src/PowerModuleCTL.c \
-src/mathtable.c \
+src/control/fixpoint/vffix.c \
+src/control/fixpoint/svpwm.c \
+src/control/fixpoint/PowerModuleCTL.c \
+src/control/fixpoint/mathtable.c \
 src/control/fixpoint/smoctrl.c \
 src/control/fixpoint/SMO.c \
 src/control/fixpoint/AngleObserver.c

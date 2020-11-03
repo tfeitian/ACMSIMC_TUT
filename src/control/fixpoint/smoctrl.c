@@ -3,25 +3,65 @@
 #include "PI_Adjuster.h"
 #include "smo.h"
 #include "AngleObserver.h"
+#include "Fixpoint.h"
+#include "config.h"
 
 MATRIX_CONVERT CurrentConvert;
 IPARK VDQ;
 SVGENAB sv1;
 PIDREG_OBJECT IdRegulate;
 PIDREG_OBJECT IqRegulate;
+PIDREG_OBJECT SpeedRegulate;
 SMOPOS_OBJECT smo1;
 Trig_Components TrigOut;
 ANGLE_OBSERVER_OBJECT AngleObserver;
 u16 uwRotorAngleGlob = 0;
+s16 swCurrentCovCof = 0;
 
 void fixsmo_init(void)
 {
+    CurrentConvert.pTrig = &TrigOut;
+    VDQ.pTrig = &TrigOut;
+
+    PidReg_Intialize(&IdRegulate);
+    PidReg_Intialize(&IqRegulate);
+    PidReg_Intialize(&SpeedRegulate);
+
+    /*D axis current */
+    IdRegulate.OutMax = 20000;
+    IdRegulate.OutMin = 0 - IdRegulate.OutMax;
+    /*Q axis current */
+    IqRegulate.OutMax = 27000;
+    IqRegulate.OutMin = 0 - IqRegulate.OutMax;
+
+    /*Speed colsed loop  */
+    SpeedRegulate.inputs.Ref = MAX_SPEED_FRQ;
+    SpeedRegulate.inputs.Kp = 512;
+    SpeedRegulate.inputs.Ki = 300;
+    SpeedRegulate.inputs.Kc = 32768 / 4;
+    // SpeedRegulate.OutMax = ClosedLoopCommand.outputs.uwIqCommand;
+    SpeedRegulate.OutMin = 0;
+
+    SMO_Intialize(&smo1);
+
+    AngleObserverInitalize(&AngleObserver);
+
+    swCurrentCovCof = (s16)((float)(3.3 * 0.7071 * 1024) / (R_SHUNT * OP_GAIN));
+}
+
+void fixsmo_speedpid(s16 SetpointValue)
+{
+    SpeedRegulate.inputs.Ref = SetpointValue;
+    SpeedRegulate.inputs.Fdb = smo1.swOmegfiltered;
+    PidReg_Calculate(&SpeedRegulate);
+    IdRegulate.inputs.Ref = 0;
+    IqRegulate.inputs.Ref = SpeedRegulate.outputs.Out;
 }
 
 void fixsmo_control(s16 swIa, s16 swIb, s16 swVdcFiltered)
 {
-    CurrentConvert.inputs.swA = swIa * 8;
-    CurrentConvert.inputs.swB = swIb * 8;
+    CurrentConvert.inputs.swA = swIa;
+    CurrentConvert.inputs.swB = swIb;
     ClarkeAndPark_Convert(&CurrentConvert);
 
     smo1.inputs.swIalpha = CurrentConvert.outputs.swAlpha;

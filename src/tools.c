@@ -1,4 +1,5 @@
 #include "userdefine.h"
+#include "math.h"
 
 int isNumber(double x)
 {
@@ -48,4 +49,18 @@ double LP_Filter(double fin, double fcoef, double *fold)
     double ffilter = fin * fcoef + (1 - fcoef) * (*fold);
     *fold = ffilter;
     return ffilter;
+}
+
+float f3to2(float ia, float ib, float *ial, float *ibe)
+{
+    float ic = 0 - ia - ib;
+    *ial = ia;
+    *ibe = 1 / sqrt(3) * (ia + 2 * ib);
+}
+
+float f2to3(float ial, float ibe, float *ia, float *ib)
+{
+    *ia = ial;
+    *ib = -1 / 2 * ial + sqrt(3) / 2 * ibe;
+    // *ic = -1 / 2 * ial - sqrt(3) / 2 * ibe;
 }

@@ -1,7 +1,6 @@
 #ifndef __ANGLE_OBSERVER_H__
 #define __ANGLE_OBSERVER_H__
 #include "userdefine.h"
-#define Fre_MAX 200
 typedef struct
 {
     struct
