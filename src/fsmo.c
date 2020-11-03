@@ -3,15 +3,6 @@
 #include "tools.h"
 #include "motor.h"
 
-#define T_SAMPLE ((float)TS) //Sample time
-#define Fre_Max 200          // Motor max frequency
-#define Pi 3.1415926
-#define MOTOR_POLES 5
-#define MIN_SPEED 200
-#define MAX_VOLTAGE 300
-
-#define MAX_CURRENT 3
-
 static float fFsmopos, fGsmopos, fKslide, fKslfMin, fKslf, fKOmgKslf, fKCoeff, fMaxCurrentError;
 float fGsmoposTmp = 0;
 void smo_vInit(float fRs, float fLs)

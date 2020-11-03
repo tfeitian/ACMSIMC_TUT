@@ -45,5 +45,4 @@ typedef long long s64;
 typedef unsigned long long u64;
 typedef _Bool bool;
 
-#define CONTROL_METHOD VF_CONTROL
 #endif // !USER_DEFINIE_H

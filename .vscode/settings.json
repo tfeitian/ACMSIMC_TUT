@@ -18,6 +18,7 @@
         "MatrixConvert.c": "c",
         "cstdint": "cpp",
         "SVPWM.C": "cpp",
-        "PowerModuleCTL.C": "cpp"
+        "PowerModuleCTL.C": "cpp",
+        "AngleObserver.C": "cpp"
     }
 }

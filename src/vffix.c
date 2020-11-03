@@ -82,7 +82,7 @@ u32 u32DcRunTime = 0;
 
 SVGENAB sv1;
 
-static bool bsmoInit = false;
+bool bsmoInit = false;
 
 s32 ufcontrol(double speed_cmd, double speed_cmd_dot)
 {
@@ -162,6 +162,7 @@ s32 ufcontrol(double speed_cmd, double speed_cmd_dot)
             CTRL.pi_speed.i_state = 0;
             CTRL.pi_iMs.i_state = CTRL.iMs;
             CTRL.pi_iTs.i_state = CTRL.iTs;
+            // CTRL.iTs_cmd = 0;
         }
     }
 

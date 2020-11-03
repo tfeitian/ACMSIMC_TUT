@@ -483,7 +483,7 @@ void control(double speed_cmd, double speed_cmd_dot)
     // CTRL.iMs_cmd = MAX(CTRL.iMs_cmd, 3);
     // T-axis current command
     static int vc_count = 0;
-    // if (vc_count++ == VC_LOOP_CEILING * DOWN_FREQ_EXE_INVERSE)
+    //if (vc_count++ == VC_LOOP_CEILING * DOWN_FREQ_EXE_INVERSE)
     {
         vc_count = 0;
         CTRL.omg_ctrl_err = CTRL.omg_fb - speed_cmd * RPM_2_RAD_PER_SEC(ACM.npp);

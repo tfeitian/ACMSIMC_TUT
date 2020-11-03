@@ -1,6 +1,7 @@
 #include "ACMSim.h"
 #include "motor.h"
 #include "tools.h"
+#include "config.h"
 
 #if MACHINE_TYPE == INDUCTION_MACHINE
 struct InductionMachineSimulated ACM;
@@ -148,7 +149,8 @@ void Machine_init()
 
     // double motorData[4] = {10.3, 87.5, 87.5, 125}; //efan
     // double motorData[5] = {0.45, 4.15, 16.74, 0.504 / 13.5 * 2 * 1000, 2}; //Origin motor data
-    double motorData[5] = {7.6, 75, 75, 150, 5}; //138mm
+    // double motorData[5] = {7.6, 75, 75, 150, 5}; //138mm
+    double motorData[5] = {RS, LS * 1000, LS * 1000, 150, 5}; //138mm
     ACM.R = motorData[0];
     ACM.Ld = motorData[1] * 1e-3 * 0.99;
     ACM.Lq = motorData[2] * 1e-3;

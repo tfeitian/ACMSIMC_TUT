@@ -11,7 +11,7 @@ C_SOURCES =  \
 src/main.c\
 src/observer.c \
 src/controller.c \
-src/smo.c \
+src/fsmo.c \
 src/log.c \
 src/socket.c \
 src/cJSON.c \
@@ -26,7 +26,10 @@ src/tools.c \
 src/vffix.c \
 src/svpwm.c \
 src/PowerModuleCTL.c \
-src/mathtable.c
+src/mathtable.c \
+src/control/fixpoint/smoctrl.c \
+src/control/fixpoint/SMO.c \
+src/control/fixpoint/AngleObserver.c
 
 CC = $(PREFIX)gcc
 

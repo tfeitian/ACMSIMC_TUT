@@ -60,4 +60,9 @@ void fp_abtodq(s16 ia, s16 ib, u16 u16theta, s16 *id, s16 *iq);
 void fp_dqtoab(s32 ud, s32 uq, u16 theta, s32 *ua, s32 *ub);
 s16 Math_Sin(u16 uwAngle);
 s16 Math_Cos(u16 uwAngle);
+
+Trig_Components Trig_FunctionsAngle(u16 uwAngle);
+void ClarkeAndPark_Convert(MATRIX_CONVERT *v);
+void Trig_Functions(Trig_Components *p);
+void InvPark_Calc(IPARK *v);
 #endif

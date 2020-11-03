@@ -249,6 +249,40 @@ u16 Atan_Functions(s16 x, s16 y)
 }
 #endif
 
+void ClarkeAndPark_Convert(MATRIX_CONVERT *v)
+{
+    s32 temp1, temp2;
+    /*Clarke */
+    v->outputs.swAlpha = v->inputs.swA; //Ialpha=Ia
+
+    temp1 = v->inputs.swB;
+    temp1 = v->inputs.swA + temp1 + temp1;
+    temp2 = temp1 * ONE_SQRT_3 / 32768; // ���������temp1*ONE_SQRT_3<3*2^15*0.6*2^15=1.8*2^30<2^31
+    if (temp2 > 32767)
+        temp2 = 32767;
+    if (temp2 < -32767)
+        temp2 = -32767;
+    v->outputs.swBelt = temp2; // Ibelt=(2*Ib+Ia)/sqrt(3)
+
+    /*Park*/
+    temp1 = v->outputs.swAlpha * v->pTrig->hCos;
+    temp2 = v->outputs.swBelt * v->pTrig->hSin;
+    temp2 = (temp1 + temp2) / 32768;
+    if (temp2 > 32767)
+        temp2 = 32767;
+    if (temp2 < -32767)
+        temp2 = -32767;
+    v->outputs.swDs = temp2;
+
+    temp1 = v->outputs.swBelt * v->pTrig->hCos;
+    temp2 = v->outputs.swAlpha * v->pTrig->hSin;
+    temp2 = (temp1 - temp2) / 32768;
+    if (temp2 > 32767)
+        temp2 = 32767;
+    if (temp2 < -32767)
+        temp2 = -32767;
+    v->outputs.swQs = temp2;
+}
 /*******************************************************************************
 * Function Name  : ClarkeAndPark_Convert
 * Description    : This function returns Ialpha /Ibelt/Id/Iq
