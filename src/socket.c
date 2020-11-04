@@ -73,7 +73,7 @@ void socket_vSend(void)
     /*int ret = recv(sclient, recData, 255, 0);
 		if (ret > 0)
 		{
-	
+
 			recData[ret] = 0x00;
 			//printf(recData);
 			printf("%d%s",i,recData);
@@ -88,7 +88,7 @@ int socket_vClose()
     return 0;
 }
 
-void dbglog(char *name, float value)
+void dbg_log(char *name, float value)
 {
     if (pJsonRoot == NULL)
     {

@@ -15,10 +15,13 @@
 #include "Svpwm.h"
 #include "Fixpoint.h"
 #include "fixsmo.h"
+#include "dbglog.h"
 
 #define MAX_LOG_CNTS 20
 static float g_fTest[MAX_LOG_CNTS];
 float param[10] = {100, 0, 0, 2, NUMBER_OF_LINES};
+
+void motor_log(void);
 
 void write_input(int argc, char *argv[])
 {
@@ -58,7 +61,7 @@ int main(int argc, char *argv[])
 
     FILE *fw;
     fw = fopen("algorithm.dat", "w");
-    write_header_to_file(fw);
+    // write_header_to_file(fw);
 
     /* MAIN LOOP */
     clock_t begin, end;
@@ -123,7 +126,7 @@ int main(int argc, char *argv[])
             // observation();
 
             ob.theta = smo_vCalc(sm.is_curr[0], sm.is_curr[1], CTRL.ual, CTRL.ube, sm.omg);
-            write_data_to_file(fw);
+            // write_data_to_file(fw);
 
 #if CONTROL_METHOD == VF_CONTROL
             // if (pre_run(rpm_cmd, 0))
@@ -146,11 +149,15 @@ int main(int argc, char *argv[])
 
         inverter_model(CTRL.ual, CTRL.ube, ACM.theta_d, &ud, &uq);
         dbg_tst(16, ob.theta);
+        motor_log();
+        // dbglog("ob_theta", ob.theta);
+        dbgsave(fw);
     }
+
     end = clock();
-    printf("The simulation in C costs %g sec.\n", (double)(end - begin) / CLOCKS_PER_SEC);
+    printf("The simulation in C costs ---- %g sec.\n", (double)(end - begin) / CLOCKS_PER_SEC);
     fclose(fw);
-    socket_vClose();
+    // socket_vClose();
     /* Fade out */
     // system("python ./ACMPlot.py");
     // getch();
@@ -169,6 +176,20 @@ void write_header_to_file(FILE *fw)
     fprintf(fw, "x0,x1,x2,x3, uMs_cmd, uTs_cmd, iMs_cmd, iMs, iTs_cmd, iTs, obtheta\n");
 #endif
 }
+void motor_log(void)
+{
+    dbglog("ACM.id", ACM.id);
+    dbglog("ACM.iq", ACM.iq);
+    dbglog("ACM.omg", ACM.omg);
+    dbglog("ACM.theta_d", ACM.theta_d);
+    dbglog("ACM.ud", ACM.ud);
+    dbglog("ACM.uq", ACM.uq);
+    dbglog("ACM.phid", ACM.phid);
+    dbglog("ACM.phiq", ACM.phiq);
+    dbglog("ACM.Tload", ACM.Tload);
+    dbglog("ACM.Tem", ACM.Tem);
+}
+
 void write_data_to_file(FILE *fw)
 {
     static int bool_animate_on = false;

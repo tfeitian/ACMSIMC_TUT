@@ -4,5 +4,5 @@
 int socket_vinit(void);
 int socket_vClose();
 void socket_vSend(void);
-void dbglog(char *name, float value);
+// void dbglog(char *name, float value);
 #endif // !LOG_SOCKET_H

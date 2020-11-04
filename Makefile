@@ -13,7 +13,6 @@ src/observer.c \
 src/controller.c \
 src/fsmo.c \
 src/log.c \
-src/socket.c \
 src/cJSON.c \
 src/inverter.c \
 src/motor.c \
@@ -23,6 +22,7 @@ src/control/fixpoint/FixMath.c \
 src/control/fixpoint/PI_Adjuster.c \
 src/VFControl.c \
 src/tools.c \
+src/dbglog.c \
 src/control/fixpoint/vffix.c \
 src/control/fixpoint/svpwm.c \
 src/control/fixpoint/PowerModuleCTL.c \

@@ -50,6 +50,7 @@ def run(*args:"0-ref,1-angle,2-load,3-ramptime,4-vcomp,5-simtime"):#reference an
     os.chdir(path+r"\build")
 
     def go():
+        print(cmdstr)
         os.system(cmdstr)
 
     a = threading.Thread(target = go,)
