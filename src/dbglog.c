@@ -16,7 +16,6 @@ static void saveheader(FILE *pf)
 {
     for (u16 i = 0; i < namelength - 1; i++)
     {
-        printf(namesArr[i]);
         fputs(namesArr[i], pf);
         fputs(",", pf);
     }
@@ -54,7 +53,6 @@ void dbglog(const char *name, float value)
     if (!bfound)
     {
         char *pstr = (char *)malloc(strlen(name) + 1);
-        printf("%d--%s\n", strlen(name), name);
         strcpy(pstr, name);
         namesArr[namelength] = pstr;
         namelength++;

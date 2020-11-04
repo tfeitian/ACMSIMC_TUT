@@ -137,7 +137,13 @@ int main(int argc, char *argv[])
                 // ufcontrol(ramp(rpm_cmd, param[E_RAMP_TIME], TS), 0);
                 control(ramp(rpm_cmd, param[E_RAMP_TIME], TS), 0);
                 float ia, ib, ic;
-                f2to3(ACM.ial, ACM.ibe, &ia, &ib);
+                f2to3(ACM.ial, ACM.ibe, &ia, &ib, &ic);
+                // ic = 0 - ia - ib;
+                dbglog("ACM.ial", ACM.ial);
+                dbglog("ACM.ibe", ACM.ibe);
+                dbglog("ACM.ia", ia);
+                dbglog("ACM.ib", ib);
+                dbglog("ACM.ic", ic);
                 fixsmo_control(FP_CURRENT(ia), FP_CURRENT(ib), FP_VOLTAGE(400));
                 ufcontrol(rpm_cmd, 0);
             }
@@ -154,7 +160,7 @@ int main(int argc, char *argv[])
     }
 
     end = clock();
-    printf("The simulation in C costs ---- %g sec.\n", (double)(end - begin) / CLOCKS_PER_SEC);
+    printf("The simulation in C costs %g sec.\n", (double)(end - begin) / CLOCKS_PER_SEC);
     fclose(fw);
     // socket_vClose();
     /* Fade out */

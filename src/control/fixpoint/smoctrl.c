@@ -68,6 +68,9 @@ void fixsmo_control(s16 swIa, s16 swIb, s16 swVdcFiltered)
     smo1.inputs.swIalpha = CurrentConvert.outputs.swAlpha;
     smo1.inputs.swIbeta = CurrentConvert.outputs.swBelt;
 
+    dbglog("smoIalpha", smo1.inputs.swIalpha);
+    dbglog("smoIbeta", smo1.inputs.swIbeta);
+
     smo1.inputs.swValpha = sv1.Ualpha * swVdcFiltered / 4096;
     smo1.inputs.swVbeta = sv1.Ubeta * swVdcFiltered / 4096;
 
@@ -82,7 +85,7 @@ void fixsmo_control(s16 swIa, s16 swIb, s16 swVdcFiltered)
 
     AngleObserverCalculate(&AngleObserver);
     smo1.swOmeg = AngleObserver.swOmeg;
-    // dbglog("smofix", smo1.swOmeg);
+    dbglog("smofix", smo1.swOmeg);
 
     TrigOut.uwAngle = uwRotorAngleGlob;
     Trig_Functions(&TrigOut);
@@ -99,6 +102,8 @@ void fixsmo_control(s16 swIa, s16 swIb, s16 swVdcFiltered)
 
     InvPark_Calc(&VDQ);
 
+    sv1.Ualpha = VDQ.outputs.slAlpha;
+    sv1.Ubeta = VDQ.outputs.slBelt;
     Svpwm_Alpha_Belt_Calc(&sv1);
 
     /*     Driver1.inputs.uwTa = sv1.Ta;

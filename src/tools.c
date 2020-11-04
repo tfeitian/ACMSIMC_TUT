@@ -55,12 +55,12 @@ float f3to2(float ia, float ib, float *ial, float *ibe)
 {
     float ic = 0 - ia - ib;
     *ial = ia;
-    *ibe = 1 / sqrt(3) * (ia + 2 * ib);
+    *ibe = 1.0 / sqrt(3) * (ia + 2 * ib);
 }
 
-float f2to3(float ial, float ibe, float *ia, float *ib)
+float f2to3(float ial, float ibe, float *ia, float *ib, float *ic)
 {
     *ia = ial;
-    *ib = -1 / 2 * ial + sqrt(3) / 2 * ibe;
-    // *ic = -1 / 2 * ial - sqrt(3) / 2 * ibe;
+    *ib = -1.0 / 2 * ial + sqrt(3) / 2 * ibe;
+    *ic = -1.0 / 2 * ial - sqrt(3) / 2 * ibe;
 }
