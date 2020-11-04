@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
     fixsmo_init();
 
     FILE *fw;
-    fw = fopen("algorithm.dat", "w");
+    fw = fopen("algorithm.dat", "w+");
     // write_header_to_file(fw);
 
     /* MAIN LOOP */
@@ -113,6 +113,7 @@ int main(int argc, char *argv[])
             printf("Break the loop.\n");
             break;
         }
+        motor_log();
 
         if (++dfe == DOWN_FREQ_EXE)
         {
@@ -148,8 +149,6 @@ int main(int argc, char *argv[])
         }
 
         inverter_model(CTRL.ual, CTRL.ube, ACM.theta_d, &ud, &uq);
-        dbg_tst(16, ob.theta);
-        motor_log();
         // dbglog("ob_theta", ob.theta);
         dbgsave(fw);
     }

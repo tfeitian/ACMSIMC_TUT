@@ -63,8 +63,8 @@ var refresh = function () {
             // console.log(table);
             var length = table.length;
             var step = 4; //For extracting
-            // series = [];
-            // names = [];
+            series = [];
+            names = [];
             names = table[0];
             xAxis = f(length / step);
             for (j = 0; j < table[1].length; j++) {

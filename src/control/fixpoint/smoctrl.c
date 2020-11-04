@@ -5,6 +5,7 @@
 #include "AngleObserver.h"
 #include "Fixpoint.h"
 #include "config.h"
+#include "dbglog.h"
 
 MATRIX_CONVERT CurrentConvert;
 IPARK VDQ;
@@ -81,6 +82,7 @@ void fixsmo_control(s16 swIa, s16 swIb, s16 swVdcFiltered)
 
     AngleObserverCalculate(&AngleObserver);
     smo1.swOmeg = AngleObserver.swOmeg;
+    // dbglog("smofix", smo1.swOmeg);
 
     TrigOut.uwAngle = uwRotorAngleGlob;
     Trig_Functions(&TrigOut);
