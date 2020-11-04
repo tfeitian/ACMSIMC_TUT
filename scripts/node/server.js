@@ -17,6 +17,7 @@ var f = length => Array.from({
 
 var series = [];
 var xAxis = [];
+var names = [];
 var title = null;
 
 router.get('/', async (ctx) => {
@@ -26,7 +27,8 @@ router.get('/', async (ctx) => {
     await ctx.render('index', {
         xAxis,
         series,
-        title
+        title,
+        names
     });
 
 })
@@ -61,7 +63,9 @@ var refresh = function () {
             // console.log(table);
             var length = table.length;
             var step = 4; //For extracting
-            series = [];
+            // series = [];
+            // names = [];
+            names = table[0];
             xAxis = f(length / step);
             for (j = 0; j < table[1].length; j++) {
                 var row = [];

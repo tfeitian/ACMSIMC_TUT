@@ -22,10 +22,12 @@
     <div id="view"></div>
     <input id="xAxis" value="<%= xAxis%>" type="hidden" />
     <input id="series" value="<%= series%>" type="hidden" />
+    <input id="names" value="<%= names%>" type="hidden" />
     <script type="text/javascript">
       // 基于准备好的dom，初始化echarts实例
       var datas = document.getElementById("xAxis").value;
       var data2 = document.getElementById("series").value;
+      var names = document.getElementById("names").value.split(",");
       var xAxiso = datas.split(",");
       var series = data2.split(",");
 
@@ -48,7 +50,7 @@
           type: "line",
           smooth: true,
           large: true,
-          name: String(i),
+          name: names[i],
         });
       }
 
@@ -102,6 +104,9 @@
         series: null,
       };
 
+      function getindex(name) {
+        return names.indexOf(name);
+      }
       function showone(index) {
         var view = document.getElementById("view");
         newpage = document.createElement("div");
@@ -110,7 +115,7 @@
         var myChart = echarts.init(newpic);
         bb = [];
         for (var i = 0; i < index.length; i++) {
-          bb.push(aa[index[i]]);
+          bb.push(aa[getindex(index[i])]);
         }
         option.series = bb;
         option.title.text = index;
@@ -124,7 +129,8 @@
       }
 
       charts = [];
-write      //charts.push(showone([28,15]))
+      charts.push(showone(["ACM.id","ACM.iq"]))
+      //charts.push(showone([28,15]))
       //charts.push(showone([8, 9]))
       //charts.push(showone([2, 24, 25]))
       //charts.push(showone([17]))
@@ -137,7 +143,7 @@ write      //charts.push(showone([28,15]))
       //charts.push(showone([13,14]))
       //charts.push(showone([28,29]))
       //charts.push(showone([16]))
-      charts.push(showone([2,3]))
+      //charts.push(showone([2,3]))
       //charts.push(showone([14,15]))
       //charts.push(showone([3, 16]))
       //charts.push(showone([25]));
@@ -155,9 +161,9 @@ write      //charts.push(showone([28,15]))
       //      charts.push(showone([27, 28]));
       //      charts.push(showone([22, 23]));
       //      charts.push(showone([19, 20]));
-      charts.push(showone([0, 1]));
-      charts.push(showone([4, 5]))
-      charts.push(showone([6, 7]))
+      //charts.push(showone([0, 1]));
+      //charts.push(showone([4, 5]))
+      //charts.push(showone([6, 7]))
 
       //charts.push(showone([28, 21]))
       //charts.push(showone([16, 18]))
