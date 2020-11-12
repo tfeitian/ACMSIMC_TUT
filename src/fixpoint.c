@@ -57,7 +57,7 @@ void fix_vinit(void)
 
 s16 FP_CURRENT(float finput)
 {
-    float fresult = finput * R_SHUNT * 32768;
+    float fresult = finput * R_SHUNT * 32768; //ki_scale = ADC_SAMPLE_VALUE * 8
     if (fresult > 32767)
     {
         fresult = 32767;

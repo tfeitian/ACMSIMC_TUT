@@ -8,6 +8,8 @@
 #include "svpwm.h"
 #include "PowerModuleCTL.h"
 #include "ramp.h"
+#include "smo.h"
+#include "dbglog.h"
 
 static float power_p, dw_p;
 u16 theta;
@@ -84,6 +86,8 @@ SVGENAB sv1;
 
 bool bsmoInit = false;
 
+static u16 transfertime = 0;
+
 s32 ufcontrol(double speed_cmd, double speed_cmd_dot)
 {
     s16 dw = 0;
@@ -102,7 +106,6 @@ s32 ufcontrol(double speed_cmd, double speed_cmd_dot)
     }
     else
     {
-
         if (wref < 5000)
         {
             u16RampStep = (RAMP_STEP >>1);
@@ -146,25 +149,38 @@ s32 ufcontrol(double speed_cmd, double speed_cmd_dot)
     }
 
     // theta = 65535;
+    u8 u8TState = 0;
 
-    if (wref <= FP_SPEED2RAD(250))
+    // if (wref <= FP_SPEED2RAD(250))
     {
         CTRL.ual = FLOAT_V(vout * Math_Cos(theta) >> 15);
         CTRL.ube = FLOAT_V(vout * Math_Sin(theta) >> 15);
         bsmoInit = false;
     }
-    else
+                /*     else
     {
-        if (!bsmoInit)
+        transfertime++;
+        if (transfertime < 200)
         {
-            ramp_set(250);
-            bsmoInit = true;
-            CTRL.pi_speed.i_state = 0;
-            CTRL.pi_iMs.i_state = CTRL.iMs;
-            CTRL.pi_iTs.i_state = CTRL.iTs;
-            // CTRL.iTs_cmd = 0;
+            CTRL.ual = FLOAT_V(vout * Math_Cos(theta) >> 15);
+            CTRL.ube = FLOAT_V(vout * Math_Sin(theta) >> 15);
+            bsmoInit = false;
         }
-    }
+        else
+        {
+            transfertime = 1000;
+            if (!bsmoInit)
+            {
+                ramp_set(250);
+                bsmoInit = true;
+                CTRL.pi_speed.i_state = 0;
+                CTRL.pi_iMs.i_state = CTRL.iMs;
+                CTRL.pi_iTs.i_state = CTRL.iTs;
+                // CTRL.iTs_cmd = 0;
+                fixsmo_transfer();
+            }
+        }
+    } */
 
     sv1.Ualpha = CTRL.ual / 400.0 / sqrt(3) * 32768; //vout * Math_Cos(theta) >> 15;
     sv1.Ubeta = CTRL.ube / 400.0 / sqrt(3) * 32768;
@@ -175,13 +191,13 @@ s32 ufcontrol(double speed_cmd, double speed_cmd_dot)
     Driver1.inputs.uwTc = sv1.Tc;
     PWM_Update(&Driver1);
 
-    dbg_tst(17, vout);
+    dbglog("uffix-vout", vout);
 
-    dbg_tst(26, FLOAT_RAD(wset));
+    dbglog("uffix-wset", FLOAT_RAD(wset));
     // dbg_tst(25, wref);
     dbg_tst(15, theta);
     dbg_tst(14, FP_THETA(ACM.theta_d));
     dbg_tst(21, vcomp);
 
-    return wref;
+    return bsmoInit;
 }

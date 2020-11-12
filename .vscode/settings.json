@@ -21,6 +21,7 @@
         "SVPWM.C": "cpp",
         "PowerModuleCTL.C": "cpp",
         "AngleObserver.C": "cpp",
-        "typeinfo": "c"
+        "typeinfo": "c",
+        "random": "c"
     }
 }

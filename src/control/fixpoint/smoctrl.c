@@ -6,6 +6,10 @@
 #include "Fixpoint.h"
 #include "config.h"
 #include "dbglog.h"
+#include "controller.h"
+#include "motor.h"
+
+#define OBSERVER_OUTPUT_ANGLE (AngleObserver.outputs.uwEstTheta + 16384 / 2)
 
 MATRIX_CONVERT CurrentConvert;
 IPARK VDQ;
@@ -28,6 +32,8 @@ void fixsmo_init(void)
     PidReg_Intialize(&IqRegulate);
     PidReg_Intialize(&SpeedRegulate);
 
+    // IqRegulate.inputs.Kp /= 8;
+
     /*D axis current */
     IdRegulate.OutMax = 20000;
     IdRegulate.OutMin = 0 - IdRegulate.OutMax;
@@ -37,10 +43,12 @@ void fixsmo_init(void)
 
     /*Speed colsed loop  */
     SpeedRegulate.inputs.Ref = MAX_SPEED_FRQ;
-    SpeedRegulate.inputs.Kp = 512;
+    SpeedRegulate.inputs.Kp = 512 / 8;
+    // / 2 / 2 / 2;
     SpeedRegulate.inputs.Ki = 300;
     SpeedRegulate.inputs.Kc = 32768 / 4;
-    // SpeedRegulate.OutMax = ClosedLoopCommand.outputs.uwIqCommand;
+    SpeedRegulate.OutMax = 3200;
+    //ClosedLoopCommand.outputs.uwIqCommand;
     SpeedRegulate.OutMin = 0;
 
     SMO_Intialize(&smo1);
@@ -55,12 +63,40 @@ void fixsmo_speedpid(s16 SetpointValue)
     SpeedRegulate.inputs.Ref = SetpointValue;
     SpeedRegulate.inputs.Fdb = smo1.swOmegfiltered;
     PidReg_Calculate(&SpeedRegulate);
-    IdRegulate.inputs.Ref = 0;
+    // IdRegulate.inputs.Ref = 700;
+    //500;
+    // IqRegulate.inputs.Ref = 1000;
     IqRegulate.inputs.Ref = SpeedRegulate.outputs.Out;
 }
 
-void fixsmo_control(s16 swIa, s16 swIb, s16 swVdcFiltered)
+void fixsmo_transfer(void)
 {
+    float ud, uq, theta;
+    theta = FLOAT_THETA(uwRotorAngleGlob);
+    ud = AB2M(CTRL.ual, CTRL.ube, cos(theta), sin(theta));
+    uq = AB2T(CTRL.ual, CTRL.ube, cos(theta), sin(theta));
+    // uwRotorAngleGlob = OBSERVER_OUTPUT_ANGLE;
+    SpeedRegulate.inputs.Fdb = smo1.swOmegfiltered; //
+    SpeedRegulate.Ui = IqRegulate.inputs.Fdb;
+    SpeedRegulate.SatErr = 0;
+    // PidReg_Calculate(&SpeedRegulate);
+    // IqRegulate.inputs.Ref = SpeedRegulate.outputs.Out;
+    IqRegulate.SatErr = 0;
+    IqRegulate.Ui = uq / 400 * 32768;
+    //VDQ.inputs.slQs;
+
+    IdRegulate.SatErr = 0;
+    IdRegulate.Ui = ud / 400 * 32768;
+    //VDQ.inputs.slDs;
+    IdRegulate.inputs.Ref = IdRegulate.inputs.Fdb;
+}
+
+void fixsmo_control(s16 swIa, s16 swIb, s16 swVdcFiltered, bool bOutput)
+{
+    if (IdRegulate.inputs.Ref >= 0)
+    {
+        IdRegulate.inputs.Ref--;
+    }
     CurrentConvert.inputs.swA = swIa;
     CurrentConvert.inputs.swB = swIb;
     ClarkeAndPark_Convert(&CurrentConvert);
@@ -71,12 +107,27 @@ void fixsmo_control(s16 swIa, s16 swIb, s16 swVdcFiltered)
     dbglog("smoIalpha", smo1.inputs.swIalpha);
     dbglog("smoIbeta", smo1.inputs.swIbeta);
 
-    smo1.inputs.swValpha = sv1.Ualpha * swVdcFiltered / 4096;
-    smo1.inputs.swVbeta = sv1.Ubeta * swVdcFiltered / 4096;
+    float ud, uq, theta;
+    theta = FLOAT_THETA(uwRotorAngleGlob);
+    ud = AB2M(CTRL.ual, CTRL.ube, cos(theta), sin(theta));
+    uq = AB2T(CTRL.ual, CTRL.ube, cos(theta), sin(theta));
 
+    dbglog("smo-udin", ud);
+    dbglog("smo-uqin", uq);
+
+    // sv1.Ualpha = (CTRL.ual);
+    // sv1.Ubeta = (CTRL.ube);
+
+    smo1.inputs.swValpha = CTRL.ual * 32768 / swVdcFiltered; //ku_scale = 1/UDC*32768
+    smo1.inputs.swVbeta = CTRL.ube * 32768 / swVdcFiltered;
+
+    // uwRotorAngleGlob = AngleObserver.outputs.uwEstTheta - 16384;
+    // uwRotorAngleGlob = FP_THETA(ACM.theta_d);
     uwRotorAngleGlob = AngleObserver.outputs.uwEstTheta + 16384 / 2; //+uwAngleOffset;
     if (smo1.swKslide < 12000)
+    {
         smo1.swKslide++;
+    }
 
     SMOpos_calc(&smo1);
 
@@ -86,6 +137,7 @@ void fixsmo_control(s16 swIa, s16 swIb, s16 swVdcFiltered)
     AngleObserverCalculate(&AngleObserver);
     smo1.swOmeg = AngleObserver.swOmeg;
     dbglog("smofix", smo1.swOmeg);
+    dbglog("uwRotorAngleGlob", FLOAT_THETA(uwRotorAngleGlob));
 
     TrigOut.uwAngle = uwRotorAngleGlob;
     Trig_Functions(&TrigOut);
@@ -93,6 +145,10 @@ void fixsmo_control(s16 swIa, s16 swIb, s16 swVdcFiltered)
     IdRegulate.inputs.Fdb = CurrentConvert.outputs.swDs;
     IqRegulate.inputs.Fdb = CurrentConvert.outputs.swQs;
 
+    dbglog("smo-iq", IqRegulate.inputs.Fdb);
+    dbglog("smo-id", IdRegulate.inputs.Fdb);
+    dbglog("smo-iqref", IqRegulate.inputs.Ref);
+    dbglog("smo-idref", IdRegulate.inputs.Ref);
     /*     Current closed-loop control                     */
     PidReg_Calculate(&IdRegulate);
     PidReg_Calculate(&IqRegulate);
@@ -104,7 +160,20 @@ void fixsmo_control(s16 swIa, s16 swIb, s16 swVdcFiltered)
 
     sv1.Ualpha = VDQ.outputs.slAlpha;
     sv1.Ubeta = VDQ.outputs.slBelt;
+
+    dbglog("smo-ualpha", sv1.Ualpha);
+    dbglog("smo-ubeta", sv1.Ubeta);
+
+    dbglog("smo-ud", VDQ.inputs.slDs);
+    dbglog("smo-uq", VDQ.inputs.slQs);
+
     Svpwm_Alpha_Belt_Calc(&sv1);
+
+    if (bOutput)
+    {
+        CTRL.ual = (float)(sv1.Ualpha) / 32768 * swVdcFiltered;
+        CTRL.ube = (float)(sv1.Ubeta) / 32768 * swVdcFiltered;
+    }
 
     /*     Driver1.inputs.uwTa = sv1.Ta;
     Driver1.inputs.uwTb = sv1.Tb;

@@ -54,8 +54,19 @@ typedef struct
     u8 isTimeToRun;
 } SMOPOS_OBJECT;
 
+typedef enum
+{
+    E_RUN_UF,
+    E_RUN_SWITCHING,
+    E_RUN_FIX_SMO,
+    E_RUN_FP_SMO
+} E_RUN_STATE;
+
 void SMO_Intialize(SMOPOS_OBJECT *v);
 void SMOpos_calc(SMOPOS_OBJECT *v);
+void fixsmo_speedpid(s16 SetpointValue);
+void fixsmo_transfer(void);
+
 extern SMOPOS_OBJECT smo1;
 extern s16 swOmegConvCoeff;
 

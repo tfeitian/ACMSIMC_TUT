@@ -1,3 +1,4 @@
+#include <assert.h>
 #include "ACMSim.h"
 #include "smo.h"
 #include "log_socket.h"
@@ -8,8 +9,6 @@
 #include "userdefine.h"
 #include "ramp.h"
 #include "tools.h"
-#include "fixpoint.h"
-#include <assert.h>
 #include "VFControl.h"
 #include "vffix.h"
 #include "Svpwm.h"
@@ -69,19 +68,32 @@ int main(int argc, char *argv[])
     begin = clock();
     int sim_step; // _ for the outer iteration
     int dfe = 0; // dfe for down frequency execution
+    float fref;
+    dbginit();
+    E_RUN_STATE eState = E_RUN_UF;
+    bool bSimOver = false;
 
     double ud = 0.0, uq = 0.0, rpm_cmd = 0.0;
     for (sim_step = 0; sim_step < param[E_RUN_TIME]; sim_step++)
     {
+        if (bSimOver)
+        {
+            printf("sim_step %d\n", sim_step);
+            break;
+        }
+        if (sim_step > 170000)
+        {
+            // ACM.Tload = 0;
+        }
         if (sim_step > 70000)
         {
-            ACM.Tload = 0;
+            // ACM.Tload = 0;
         }
         /* Command and Load Torque */
         if (timebase > 3.5)
         {
             // rpm_cmd = 80;
-            ACM.Tload = 0;
+            // ACM.Tload = 0;
         }
         else if (timebase > 2.7)
         {
@@ -107,6 +119,8 @@ int main(int argc, char *argv[])
             }
         }
 
+        dbglog("CTRL.ud", ud);
+        dbglog("CTRL.uq", uq);
         /* Simulated ACM */
         if (machine_simulation(ud, uq))
         {
@@ -135,7 +149,7 @@ int main(int argc, char *argv[])
                 // vf_control(ramp(rpm_cmd, param[E_RAMP_TIME], TS), 0);
                 // vffix_control(ramp(rpm_cmd, param[E_RAMP_TIME], TS), 0);
                 // ufcontrol(ramp(rpm_cmd, param[E_RAMP_TIME], TS), 0);
-                control(ramp(rpm_cmd, param[E_RAMP_TIME], TS), 0);
+                // control(ramp(rpm_cmd, param[E_RAMP_TIME], TS), 0);
                 float ia, ib, ic;
                 f2to3(ACM.ial, ACM.ibe, &ia, &ib, &ic);
                 // ic = 0 - ia - ib;
@@ -144,8 +158,80 @@ int main(int argc, char *argv[])
                 dbglog("ACM.ia", ia);
                 dbglog("ACM.ib", ib);
                 dbglog("ACM.ic", ic);
-                fixsmo_control(FP_CURRENT(ia), FP_CURRENT(ib), FP_VOLTAGE(400));
-                ufcontrol(rpm_cmd, 0);
+
+                fref = ramp(rpm_cmd, param[E_RAMP_TIME], TS);
+
+                static u16 smoruncnts = 0;
+                static u16 switchtime = 0;
+                /*                 if (fref > 250)
+                {
+                    smoruncnts++;
+                    if (smoruncnts >= 2)
+                    {
+                        // break;
+                    }
+                    // fixsmo_speedpid(FP_SPEED2RAD(fref) / 2 / M_PI);
+                    // fixsmo_control(FP_CURRENT(ia), FP_CURRENT(ib), FP_VOLTAGE(400), true);
+                }
+                else
+                {
+                    ufcontrol(fref, 0);
+                    fixsmo_speedpid(FP_SPEED2RAD(250) / 2 / M_PI);
+                    fixsmo_control(FP_CURRENT(ia), FP_CURRENT(ib), FP_VOLTAGE(400), false);
+                } */
+
+                //Run speed loop per 1ms
+                if ((sim_step & 0xff) == 0)
+                {
+                    fixsmo_speedpid(FP_SPEED2RAD(fref) / 2 / M_PI);
+                }
+
+                switch (eState)
+                {
+                case E_RUN_UF:
+                    ufcontrol(fref, 0);
+                    fixsmo_control(FP_CURRENT(ia), FP_CURRENT(ib), (400), false);
+                    fixsmo_transfer();
+                    if (fref > 250)
+                    {
+                        eState = E_RUN_SWITCHING;
+
+                        CTRL.pi_speed.i_state = 0;
+                        CTRL.pi_iMs.i_state = CTRL.iMs;
+                        CTRL.pi_iTs.i_state = CTRL.iTs;
+                        // eState = E_RUN_FP_SMO;
+                    }
+                    switchtime = 0;
+                    break;
+
+                case E_RUN_SWITCHING:
+                    ufcontrol(fref, 0);
+                    fixsmo_control(FP_CURRENT(ia), FP_CURRENT(ib), (400), false);
+                    switchtime++;
+                    if (switchtime >= 3200)
+                    {
+                        eState = E_RUN_FIX_SMO;
+                        smoruncnts = 0;
+                        fixsmo_transfer();
+                    }
+                    break;
+
+                case E_RUN_FIX_SMO:
+                    fixsmo_control(FP_CURRENT(ia), FP_CURRENT(ib), (400), true);
+                    smoruncnts++;
+                    if (smoruncnts > 1800)
+                    {
+                        // bSimOver = true;
+                    }
+                    break;
+
+                case E_RUN_FP_SMO:
+                    control(ramp(rpm_cmd, param[E_RAMP_TIME], TS), 0);
+                    break;
+
+                default:
+                    break;
+                }
             }
 #elif CONTROL_METHOD == FLOAT_CONTROL
             control(ramp(rpm_cmd, param[E_RAMP_TIME], TS), 0);
@@ -156,6 +242,13 @@ int main(int argc, char *argv[])
 
         inverter_model(CTRL.ual, CTRL.ube, ACM.theta_d, &ud, &uq);
         // dbglog("ob_theta", ob.theta);
+        dbglog("fref", fref);
+        dbglog("RunState", eState);
+
+        if (param[E_SPEED_REF] > 250 && eState < E_RUN_SWITCHING)
+        {
+            continue;
+        }
         dbgsave(fw);
     }
 
@@ -171,16 +264,6 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-/* Utility */
-void write_header_to_file(FILE *fw)
-{
-#if MACHINE_TYPE == INDUCTION_MACHINE
-    fprintf(fw, "x0, x1, x2, x3, rpm, uMs_cmd, uTs_cmd, iMs_cmd, iMs, iTs_cmd, iTs, psi_mu_al, tajima_rpm\n");
-
-#elif MACHINE_TYPE == SYNCHRONOUS_MACHINE
-    fprintf(fw, "x0,x1,x2,x3, uMs_cmd, uTs_cmd, iMs_cmd, iMs, iTs_cmd, iTs, obtheta\n");
-#endif
-}
 void motor_log(void)
 {
     dbglog("ACM.id", ACM.id);
@@ -193,58 +276,6 @@ void motor_log(void)
     dbglog("ACM.phiq", ACM.phiq);
     dbglog("ACM.Tload", ACM.Tload);
     dbglog("ACM.Tem", ACM.Tem);
-}
-
-void write_data_to_file(FILE *fw)
-{
-    static int bool_animate_on = false;
-    static int j = 0, jj = 0; // j,jj for down sampling
-
-    // if(CTRL.timebase>20)
-    {
-        if (++j == 1)
-        {
-            j = 0;
-#if MACHINE_TYPE == INDUCTION_MACHINE
-            // 数目必须对上，否则ACMAnimate会失效，但是不会影响ACMPlot
-            fprintf(fw, "%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g\n",
-                    ACM.x[0], ACM.x[1], ACM.x[2], ACM.x[3], ACM.rpm,
-                    CTRL.uMs_cmd, CTRL.uTs_cmd, CTRL.iMs_cmd, CTRL.iMs, CTRL.iTs_cmd, CTRL.iTs,
-                    ob.psi_mu_al, ob.tajima.omg * RAD_PER_SEC_2_RPM(ACM.npp));
-#elif MACHINE_TYPE == SYNCHRONOUS_MACHINE
-            fprintf(fw, "%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g\n",
-                    ACM.id, ACM.iq, ACM.omg, ACM.theta_d, //3
-                    ACM.ud, ACM.uq, ACM.phid, ACM.phiq,   //7
-                    ACM.Tload, ACM.Tem, g_fTest[0],
-                    g_fTest[1], g_fTest[2], g_fTest[3],
-                    g_fTest[4], g_fTest[5], g_fTest[6],
-                    g_fTest[7], g_fTest[8], g_fTest[9],
-                    g_fTest[10], g_fTest[11], g_fTest[12],
-                    g_fTest[13], g_fTest[14], g_fTest[15],
-                    g_fTest[16], g_fTest[17], g_fTest[18],
-                    g_fTest[19], g_fTest[20], g_fTest[21]);
-#endif
-            /*             dbglog("ACM.x[0]", ACM.x[0]);
-            dbglog("ACM.x[1]", ACM.x[1]);
-            dbglog("ACM.x[2]", ACM.x[2]);
-            dbglog("ACM.x[3]", ACM.x[3]);
-            dbglog("CTRL.uMs_cmd", CTRL.uMs_cmd);
-            dbglog("CTRL.uTs_cmd", CTRL.uTs_cmd);
-            dbglog("CTRL.iMs_cmd", CTRL.iMs_cmd);
-            dbglog("CTRL.iMs", CTRL.iMs);
-            dbglog("CTRL.iTs_cmd", CTRL.iTs_cmd);
-            dbglog("CTRL.iTs", CTRL.iTs);
-            dbglog("ob.theta", ob.theta); */
-        }
-    }
-    // socket_vSend();
-
-    if (bool_animate_on == false)
-    {
-        bool_animate_on = true;
-        // printf("Start ACMAnimate\n");
-        // system("start python ./ACMAnimate.py");
-    }
 }
 
 void dbg_tst(int tnum, float fnum)

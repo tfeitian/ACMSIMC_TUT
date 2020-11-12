@@ -2,6 +2,7 @@
 #include "motor.h"
 #include "tools.h"
 #include "config.h"
+#include "dbglog.h"
 
 #if MACHINE_TYPE == INDUCTION_MACHINE
 struct InductionMachineSimulated ACM;
@@ -55,7 +56,7 @@ static void rK5_dynamics(double t, double *x, double *fx, double ld)
     // mechanical model
     ACM.Tem = ACM.npp * (x[1] * ACM.KE + (ld - ACM.Lq) * x[0] * x[1]);
 
-    ACM.Tload = ACM.omg * ACM.omg / 8000.0;
+    // ACM.Tload = ACM.omg * ACM.omg / 8000.0;
     // ACM.Tload = ACM.Tem * 0.8;
     fx[2] = (ACM.Tem - ACM.Tload) * ACM.mu_m / ACM.J; // elec. angular rotor speed
     // if (ACM.uq > 0.0)
@@ -200,11 +201,11 @@ int machine_simulation(double ud, double uq)
     ACM.rpm = ACM.x[4] * 60 / (2 * M_PI * ACM.npp);
 
 #elif MACHINE_TYPE == SYNCHRONOUS_MACHINE
-    if (xx[3] > M_PI)
+    if (xx[3] > 2 * M_PI)
     {
         xx[3] -= 2 * M_PI;
     }
-    else if (xx[3] < -M_PI)
+    else if (xx[3] < 0)
     {
         xx[3] += 2 * M_PI;
     }
@@ -222,6 +223,9 @@ int machine_simulation(double ud, double uq)
     ACM.omg = xx[2];
     ACM.Ea = MT2A(ACM.ud, ACM.uq, cos(ACM.theta_d), sin(ACM.theta_d)) - ACM.R * ACM.ial;
     ACM.Eb = MT2B(ACM.ud, ACM.uq, cos(ACM.theta_d), sin(ACM.theta_d)) - ACM.R * ACM.ibe;
+
+    dbglog("ACM.Ea", ACM.Ea);
+    dbglog("ACM.Eb", ACM.Eb);
     //  -ACM.Ld *xx;
     // dbg_tst(19, ACM.phid);
     // dbg_tst(20, ACM.phiq);

@@ -41,14 +41,14 @@
         return newArr;
       }
 
-      temp = arrTrans(xAxiso.length, series, xAxiso.length - 30);
-      xAxis = xAxiso.slice(0, xAxiso.length - 30);
+      temp = arrTrans(xAxiso.length, series, xAxiso.length);
+      xAxis = xAxiso.slice(0, xAxiso.length);
       aa = [];
       for (var i = 0; i < temp.length; i++) {
         aa.push({
           data: temp[i],
           type: "line",
-          smooth: true,
+          smooth: false,
           large: true,
           name: names[i],
         });
@@ -130,15 +130,29 @@
 
       charts = [];
       charts.push(showone(["ACM.id","ACM.iq"]))
+      charts.push(showone(["smo-id","smo-iq"]))
+      charts.push(showone(["smo-idref","smo-iqref"]))
+      charts.push(showone(["RunState"]))
+      charts.push(showone(["smo-ualpha","smo-ubeta"]))
+      charts.push(showone(["smo-ud","smo-uq"]))
+      charts.push(showone(["smo-udin","smo-uqin"]))
+      charts.push(showone(["ACM.ud","ACM.uq"]))
+      charts.push(showone(["CTRL.ud","CTRL.uq"]))
       charts.push(showone(["ACM.ial","ACM.ibe"]))
       charts.push(showone(["smoIalpha","smoIbeta"]))
+      charts.push(showone(["IalphaError","IbetaError"]))
+      charts.push(showone(["EalphaFiltered","EbetaFiltered"]))
+      charts.push(showone(["ACM.Ea","ACM.Eb"]))
       charts.push(showone(["ACM.ia","ACM.ib","ACM.ic"]))
       charts.push(showone(["ACM.omg"]))
       charts.push(showone(["smofix"]))
-      charts.push(showone(["ACM.theta_d"]))
-      charts.push(showone(["ACM.ud","ACM.uq"]))
+      charts.push(showone(["fref"]))
+      charts.push(showone(["ACM.theta_d", "uwRotorAngleGlob"]))
       charts.push(showone(["ACM.phid","ACM.phiq"]))
       charts.push(showone(["ACM.Tload","ACM.Tem"]))
+      charts.push(showone(["uffix-vout","uffix-wset"]))
+
+
       //charts.push(showone([28,15]))
       //charts.push(showone([8, 9]))
       //charts.push(showone([2, 24, 25]))
@@ -177,8 +191,9 @@
       //charts.push(showone([28, 21]))
       //charts.push(showone([16, 18]))
       //linkage
-      //echarts.connect([charts[0], charts[1]]);
+      //echarts.connect([charts[11], charts[12]]);
       //echarts.connect([charts[2], charts[3]]);
+      //echarts.connect(charts);
     </script>
   </body>
 </html>

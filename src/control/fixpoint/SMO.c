@@ -1,6 +1,7 @@
 #include "smo.h"
 #include "config.h"
 #include "Fixpoint.h"
+#include "dbglog.h"
 /*
 F=1-Ts*R/L
 G=Ts/L
@@ -19,7 +20,8 @@ void SMO_Intialize(SMOPOS_OBJECT *v)
     v->swGsmopos = (s16)(tempx1 * 32768 + 0.5);
 
     /*Please change "v->outputs.swZalpha = (long)v->swKslide*v->swIalphaError/E0; ", after change E0*/
-    v->swKslide = 12000; //0.25*32768
+    v->swKslide = 6000;
+    //12000; //0.25*32768
 
     /*AccAngle=Omeg*t_speedlopp=2*PI*f*t_speedlopp=2*PI*(Pole*RPM/60)*t_speedlopp
    =Pole*RPM*(65536/60)*20/PWM_FREQUENCY=Pole*RPM*65536/(3*PWM_FREQUENCY)
@@ -65,6 +67,8 @@ void SMOpos_calc(SMOPOS_OBJECT *v)
     v->swIalphaError = v->swEstIalpha - v->inputs.swIalpha;
     v->swIbetaError = v->swEstIbeta - v->inputs.swIbeta;
 
+    dbglog("IalphaError", v->swIalphaError);
+    dbglog("IbetaError", v->swIbetaError);
     // Sliding control calculator
     /************Alpha phase control******************************/
     if (v->swIalphaError >= v->swMaxSMCErr)
@@ -117,7 +121,9 @@ void SMOpos_calc(SMOPOS_OBJECT *v)
 
     v->outputs.swEalphaFiltered = v->outputs.swEalphaFiltered + (s16)((long)v->swKslf * (v->swEalpha - v->outputs.swEalphaFiltered) / 32768);
     v->outputs.swEbetaFiltered = v->outputs.swEbetaFiltered + (s16)((long)v->swKslf * (v->swEbeta - v->outputs.swEbetaFiltered) / 32768);
-// Rotor angle calculator -> Theta = atan(-Ealpha,Ebeta)
+
+    dbglog("EalphaFiltered", v->outputs.swEalphaFiltered);
+    dbglog("EbetaFiltered", v->outputs.swEbetaFiltered); // Rotor angle calculator -> Theta = atan(-Ealpha,Ebeta)
 // Format of _IQ funtion   = _IQatan2PU(sin,cos)
 // v->outputs.uwTheta = _IQtoIQ16(_IQatan2PU(_IQ15toIQ(-v->swEalpha),_IQ15toIQ(v->swEbeta)));
 //Ealpha=-w*Flux*sin()    Ebelt=w*Flux*cos()

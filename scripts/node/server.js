@@ -56,20 +56,20 @@ var refresh = function () {
         if (err) {
             return console.error(err);
         }
-        if (data.length < 2000) {
-            return;
-        }
+        // if (data.length < 2000) {
+        //     return;
+        // }
         ConvertToTable(data, function (table) {
             // console.log(table);
-            var length = table.length;
-            var step = 4; //For extracting
+            var length = table.length - 2;
+            var step = 1; //4; //For extracting
             series = [];
             names = [];
             names = table[0];
             xAxis = f(length / step);
-            for (j = 0; j < table[1].length; j++) {
+            for (j = 0; j < names.length; j++) {
                 var row = [];
-                for (var i = 1; i < length / step; i += 1) {
+                for (var i = 1; i <= length / step; i += 1) {
                     row.push(table[i * step][j]);
                 }
                 series.push(row);

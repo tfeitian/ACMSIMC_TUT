@@ -27,6 +27,7 @@
 #define FLOAT_I(x) (((float)(x)) / R_SHUNT / 32768)
 #define FLOAT_RAD2SPEED(x) ((float)(x)*60 * Freq_MAX / MOTOR_POLES / 32768 / 2 / M_PI)
 #define FLOAT_RAD(x) ((float)(x)*Freq_MAX / 32768)
+#define FLOAT_THETA(x) (((float)x / 32768 * M_PI))
 
 extern struct PI_Reg sPi_Speed;
 extern struct PI_Reg sPi_Id;

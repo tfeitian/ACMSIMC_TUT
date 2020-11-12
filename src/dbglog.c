@@ -23,6 +23,13 @@ static void saveheader(FILE *pf)
     fputs("\n", pf);
 }
 
+void dbginit(void)
+{
+    dbglog("uffix-vout", 0);
+
+    dbglog("uffix-wset", 0);
+}
+
 void dbgsave(FILE *pf)
 {
     if (!bHeaderWriten)
