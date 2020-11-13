@@ -191,7 +191,7 @@ int main(int argc, char *argv[])
                 case E_RUN_UF:
                     ufcontrol(fref, 0);
                     fixsmo_control(FP_CURRENT(ia), FP_CURRENT(ib), (400), false);
-                    fixsmo_transfer();
+                    // fixsmo_transfer();
                     if (fref > 250)
                     {
                         eState = E_RUN_SWITCHING;
@@ -208,7 +208,7 @@ int main(int argc, char *argv[])
                     ufcontrol(fref, 0);
                     fixsmo_control(FP_CURRENT(ia), FP_CURRENT(ib), (400), false);
                     switchtime++;
-                    if (switchtime >= 3200)
+                    if (switchtime >= 0)
                     {
                         eState = E_RUN_FIX_SMO;
                         smoruncnts = 0;

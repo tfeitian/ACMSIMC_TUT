@@ -345,6 +345,23 @@ void fp_dqtoab(s32 ud, s32 uq, u16 theta, s32 *ua, s32 *ub)
  Dsscription:  Inverse Park Transformation
 
 =====================================================================================*/
+void Park_Calc(s16 ua, s16 ub, s16 *pud, s16 *puq, IPARK *v)
+{
+    s32 temp1, temp2;
+    temp1 = ua * v->pTrig->hCos;
+    temp2 = ub * v->pTrig->hSin;
+
+    *pud = ((temp1 + temp2) >> 15);
+    //if(temp2>32767)temp2=32767;
+    //if(temp2<-32767)temp2=-32767;
+
+    temp1 = ub * v->pTrig->hCos;
+    temp2 = ua * v->pTrig->hSin;
+
+    *puq = ((temp1 - temp2) >> 15);
+    //if(temp2>32767)temp2=32767;
+    //if(temp2<-32767)temp2=-32767;
+}
 
 void InvPark_Calc(IPARK *v)
 {

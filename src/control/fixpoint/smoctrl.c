@@ -75,7 +75,11 @@ void fixsmo_transfer(void)
     theta = FLOAT_THETA(uwRotorAngleGlob);
     ud = AB2M(CTRL.ual, CTRL.ube, cos(theta), sin(theta));
     uq = AB2T(CTRL.ual, CTRL.ube, cos(theta), sin(theta));
+
+    s16 sud, suq;
+    Park_Calc(sv1.Ualpha, sv1.Ubeta, &sud, &suq, &VDQ);
     // uwRotorAngleGlob = OBSERVER_OUTPUT_ANGLE;
+    SpeedRegulate.inputs.Ref = smo1.swOmegfiltered;
     SpeedRegulate.inputs.Fdb = smo1.swOmegfiltered; //
     SpeedRegulate.Ui = IqRegulate.inputs.Fdb;
     SpeedRegulate.SatErr = 0;
@@ -83,10 +87,12 @@ void fixsmo_transfer(void)
     // IqRegulate.inputs.Ref = SpeedRegulate.outputs.Out;
     IqRegulate.SatErr = 0;
     IqRegulate.Ui = uq / 400 * 32768;
+    IqRegulate.Ui = suq;
     //VDQ.inputs.slQs;
 
     IdRegulate.SatErr = 0;
     IdRegulate.Ui = ud / 400 * 32768;
+    IdRegulate.Ui = sud;
     //VDQ.inputs.slDs;
     IdRegulate.inputs.Ref = IdRegulate.inputs.Fdb;
 }
@@ -158,9 +164,11 @@ void fixsmo_control(s16 swIa, s16 swIb, s16 swVdcFiltered, bool bOutput)
 
     InvPark_Calc(&VDQ);
 
-    sv1.Ualpha = VDQ.outputs.slAlpha;
-    sv1.Ubeta = VDQ.outputs.slBelt;
-
+    if (bOutput)
+    {
+        sv1.Ualpha = VDQ.outputs.slAlpha;
+        sv1.Ubeta = VDQ.outputs.slBelt;
+    }
     dbglog("smo-ualpha", sv1.Ualpha);
     dbglog("smo-ubeta", sv1.Ubeta);
 
@@ -175,8 +183,8 @@ void fixsmo_control(s16 swIa, s16 swIb, s16 swVdcFiltered, bool bOutput)
         CTRL.ube = (float)(sv1.Ubeta) / 32768 * swVdcFiltered;
     }
 
-    /*     Driver1.inputs.uwTa = sv1.Ta;
+        /*     Driver1.inputs.uwTa = sv1.Ta;
     Driver1.inputs.uwTb = sv1.Tb;
     Driver1.inputs.uwTc = sv1.Tc;
     PWM_Update(&Driver1); */
-}
+    }

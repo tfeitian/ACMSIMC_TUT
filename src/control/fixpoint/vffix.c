@@ -82,7 +82,7 @@ s32 wsetold = 0;
 
 u32 u32DcRunTime = 0;
 
-SVGENAB sv1;
+extern SVGENAB sv1;
 
 bool bsmoInit = false;
 

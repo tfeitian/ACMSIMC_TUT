@@ -65,4 +65,5 @@ Trig_Components Trig_FunctionsAngle(u16 uwAngle);
 void ClarkeAndPark_Convert(MATRIX_CONVERT *v);
 void Trig_Functions(Trig_Components *p);
 void InvPark_Calc(IPARK *v);
+void Park_Calc(s16 ua, s16 ub, s16 *pud, s16 *puq, IPARK *v);
 #endif
