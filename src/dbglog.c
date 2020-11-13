@@ -28,6 +28,23 @@ void dbginit(void)
     dbglog("uffix-vout", 0);
 
     dbglog("uffix-wset", 0);
+    dbglog("smoIalpha", 0);
+    dbglog("smoIbeta", 0);
+    dbglog("smo-udin", 0);
+    dbglog("smo-uqin", 0);
+    dbglog("smofix", 0);
+    dbglog("uwRotorAngleGlob", 0);
+    dbglog("smo-iq", 0);
+    dbglog("smo-id", 0);
+    dbglog("smo-iqref", 0);
+    dbglog("smo-ualpha", 0);
+    dbglog("smo-ubeta", 0);
+    dbglog("smo-ud", 0);
+    dbglog("smo-uq", 0);
+    dbglog("IalphaError", 0);
+    dbglog("IbetaError", 0);
+    dbglog("EalphaFiltered", 0);
+    dbglog("EbetaFiltered", 0);
 }
 
 void dbgsave(FILE *pf)

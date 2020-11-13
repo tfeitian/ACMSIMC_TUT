@@ -71,6 +71,7 @@ int main(int argc, char *argv[])
     float fref;
     dbginit();
     E_RUN_STATE eState = E_RUN_UF;
+    E_MOTOR_STATE eMotorState = E_MOTOR_STOP;
     bool bSimOver = false;
 
     double ud = 0.0, uq = 0.0, rpm_cmd = 0.0;
@@ -81,14 +82,29 @@ int main(int argc, char *argv[])
             printf("sim_step %d\n", sim_step);
             break;
         }
-        if (sim_step > 170000)
+
+        if (sim_step > 370000)
+        {
+            rpm_cmd = 0;
+        }
+        else if (sim_step > 205000)
+        {
+            rpm_cmd = param[E_SPEED_REF];
+        }
+        else if (sim_step > 170000)
+        {
+            // ACM.Tload = 0;
+            rpm_cmd = 0;
+        }
+        else if (sim_step > 70000)
         {
             // ACM.Tload = 0;
         }
-        if (sim_step > 70000)
+        else if (sim_step > 5000)
         {
-            // ACM.Tload = 0;
+            rpm_cmd = param[E_SPEED_REF];
         }
+#if 0
         /* Command and Load Torque */
         if (timebase > 3.5)
         {
@@ -118,9 +134,37 @@ int main(int argc, char *argv[])
                 ACM.Tload = 10;
             }
         }
-
+#endif
         dbglog("CTRL.ud", ud);
         dbglog("CTRL.uq", uq);
+
+        switch (eMotorState)
+        {
+        case E_MOTOR_STOP:
+            if (rpm_cmd != 0)
+            {
+                eMotorState = E_MOTOR_RUNNING;
+            }
+            break;
+
+        case E_MOTOR_RUNNING:
+            if (rpm_cmd == 0)
+            {
+                eMotorState = E_MOTOR_STOP;
+                ud = 0;
+                uq = 0;
+                CTRL.ual = 0.0;
+                CTRL.ube = 0;
+                ramp_set(0);
+                eState = E_RUN_UF;
+                ufinit();
+            }
+            break;
+
+        default:
+            break;
+        }
+
         /* Simulated ACM */
         if (machine_simulation(ud, uq))
         {
@@ -186,51 +230,54 @@ int main(int argc, char *argv[])
                     fixsmo_speedpid(FP_SPEED2RAD(fref) / 2 / M_PI);
                 }
 
-                switch (eState)
+                if (eMotorState == E_MOTOR_RUNNING)
                 {
-                case E_RUN_UF:
-                    ufcontrol(fref, 0);
-                    fixsmo_control(FP_CURRENT(ia), FP_CURRENT(ib), (400), false);
-                    // fixsmo_transfer();
-                    if (fref > 250)
+                    switch (eState)
                     {
-                        eState = E_RUN_SWITCHING;
+                    case E_RUN_UF:
+                        ufcontrol(fref, 0);
+                        fixsmo_control(FP_CURRENT(ia), FP_CURRENT(ib), (400), false);
+                        // fixsmo_transfer();
+                        if (fref > 250)
+                        {
+                            eState = E_RUN_SWITCHING;
 
-                        CTRL.pi_speed.i_state = 0;
-                        CTRL.pi_iMs.i_state = CTRL.iMs;
-                        CTRL.pi_iTs.i_state = CTRL.iTs;
-                        // eState = E_RUN_FP_SMO;
+                            CTRL.pi_speed.i_state = 0;
+                            CTRL.pi_iMs.i_state = CTRL.iMs;
+                            CTRL.pi_iTs.i_state = CTRL.iTs;
+                            // eState = E_RUN_FP_SMO;
+                        }
+                        switchtime = 0;
+                        break;
+
+                    case E_RUN_SWITCHING:
+                        ufcontrol(fref, 0);
+                        fixsmo_control(FP_CURRENT(ia), FP_CURRENT(ib), (400), false);
+                        switchtime++;
+                        if (switchtime >= 0)
+                        {
+                            eState = E_RUN_FIX_SMO;
+                            smoruncnts = 0;
+                            fixsmo_transfer();
+                        }
+                        break;
+
+                    case E_RUN_FIX_SMO:
+                        fixsmo_control(FP_CURRENT(ia), FP_CURRENT(ib), (400), true);
+                        smoruncnts++;
+                        if (smoruncnts > 1800)
+                        {
+                            // bSimOver = true;
+                        }
+                        break;
+
+                    case E_RUN_FP_SMO:
+                        control(ramp(rpm_cmd, param[E_RAMP_TIME], TS), 0);
+                        break;
+
+                    default:
+                        break;
                     }
-                    switchtime = 0;
-                    break;
-
-                case E_RUN_SWITCHING:
-                    ufcontrol(fref, 0);
-                    fixsmo_control(FP_CURRENT(ia), FP_CURRENT(ib), (400), false);
-                    switchtime++;
-                    if (switchtime >= 0)
-                    {
-                        eState = E_RUN_FIX_SMO;
-                        smoruncnts = 0;
-                        fixsmo_transfer();
-                    }
-                    break;
-
-                case E_RUN_FIX_SMO:
-                    fixsmo_control(FP_CURRENT(ia), FP_CURRENT(ib), (400), true);
-                    smoruncnts++;
-                    if (smoruncnts > 1800)
-                    {
-                        // bSimOver = true;
-                    }
-                    break;
-
-                case E_RUN_FP_SMO:
-                    control(ramp(rpm_cmd, param[E_RAMP_TIME], TS), 0);
-                    break;
-
-                default:
-                    break;
                 }
             }
 #elif CONTROL_METHOD == FLOAT_CONTROL
@@ -247,13 +294,13 @@ int main(int argc, char *argv[])
 
         if (param[E_SPEED_REF] > 250 && eState < E_RUN_SWITCHING)
         {
-            continue;
+            // continue;
         }
         dbgsave(fw);
     }
 
     end = clock();
-    printf("The simulation in C costs %g sec.\n", (double)(end - begin) / CLOCKS_PER_SEC);
+    printf("The simulation in C costs %g sec with %d counts.\n", (double)(end - begin) / CLOCKS_PER_SEC, sim_step);
     fclose(fw);
     // socket_vClose();
     /* Fade out */

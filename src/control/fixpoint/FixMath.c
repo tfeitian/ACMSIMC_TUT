@@ -11,6 +11,7 @@
 void Trig_Functions(Trig_Components *p)
 {
     u16 hindex = 0;
+    u16 uwAngleTmp;
     if (p->uwAngle < DEGREE90)
     {
         hindex = ((u32)p->uwAngle * 45) >> SIN_TABLE_SHIFT; // sin����Ϊÿ��0.25����һ����Ӧ����ֵ,hindex=uwAngle*360/(65536*0.25)
@@ -19,23 +20,22 @@ void Trig_Functions(Trig_Components *p)
     }
     else if (p->uwAngle < DEGREE180)
     {
-        p->uwAngle = DEGREE180 - p->uwAngle;
-        hindex = ((u32)p->uwAngle * 45) >> SIN_TABLE_SHIFT; // sin����Ϊÿ��0.25����һ����Ӧ����ֵ,hindex=uwAngle*360/(65536*0.25)
+        uwAngleTmp = DEGREE180 - p->uwAngle;
+        hindex = ((u32)uwAngleTmp * 45) >> SIN_TABLE_SHIFT; // sin����Ϊÿ��0.25����һ����Ӧ����ֵ,hindex=uwAngle*360/(65536*0.25)
         p->hSin = wSin_Table[hindex];
-        ;
         p->hCos = -wSin_Table[SIN_CAL_INDEX - hindex];
     }
     else if (p->uwAngle < DEGREE270)
     {
-        p->uwAngle = p->uwAngle - DEGREE180;
-        hindex = ((u32)p->uwAngle * 45) >> SIN_TABLE_SHIFT; // sin����Ϊÿ��0.25����һ����Ӧ����ֵ,hindex=uwAngle*360/(65536*0.25)
+        uwAngleTmp = p->uwAngle - DEGREE180;
+        hindex = ((u32)uwAngleTmp * 45) >> SIN_TABLE_SHIFT; // sin����Ϊÿ��0.25����һ����Ӧ����ֵ,hindex=uwAngle*360/(65536*0.25)
         p->hSin = -wSin_Table[hindex];
         p->hCos = -wSin_Table[SIN_CAL_INDEX - hindex];
     }
     else
     {
-        p->uwAngle = DEGREE360 - p->uwAngle;
-        hindex = ((u32)p->uwAngle * 45) >> SIN_TABLE_SHIFT; // sin����Ϊÿ��0.25����һ����Ӧ����ֵ,hindex=uwAngle*360/(65536*0.25)
+        uwAngleTmp = DEGREE360 - p->uwAngle;
+        hindex = ((u32)uwAngleTmp * 45) >> SIN_TABLE_SHIFT; // sin����Ϊÿ��0.25����һ����Ӧ����ֵ,hindex=uwAngle*360/(65536*0.25)
         p->hSin = -wSin_Table[hindex];
         p->hCos = wSin_Table[SIN_CAL_INDEX - hindex];
     }

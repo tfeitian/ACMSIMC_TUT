@@ -63,6 +63,9 @@ var refresh = function () {
             // console.log(table);
             var length = table.length - 2;
             var step = 1; //4; //For extracting
+            if (length > 50000) {
+                step = Math.round(length / 50000);
+            }
             series = [];
             names = [];
             names = table[0];

@@ -62,6 +62,14 @@ typedef enum
     E_RUN_FP_SMO
 } E_RUN_STATE;
 
+typedef enum
+{
+    E_MOTOR_STOP,
+    E_MOTOR_RUNNING,
+    E_MOTOR_BREAKING,
+    E_MOTOR_STARTUP
+} E_MOTOR_STATE;
+
 void SMO_Intialize(SMOPOS_OBJECT *v);
 void SMOpos_calc(SMOPOS_OBJECT *v);
 void fixsmo_speedpid(s16 SetpointValue);
