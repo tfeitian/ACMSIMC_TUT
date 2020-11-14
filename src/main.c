@@ -46,8 +46,6 @@ int main(int argc, char *argv[])
     {
         printf("%d -- %f\n", i, param[i]);
     }
-
-    write_input(argc, argv);
     /* Initialization */
     Machine_init();
     CTRL_init();
@@ -302,6 +300,10 @@ int main(int argc, char *argv[])
     end = clock();
     printf("The simulation in C costs %g sec with %d counts.\n", (double)(end - begin) / CLOCKS_PER_SEC, sim_step);
     fclose(fw);
+
+    //Move to here for informing server.js to load new sim data
+    write_input(argc, argv);
+
     // socket_vClose();
     /* Fade out */
     // system("python ./ACMPlot.py");

@@ -4,6 +4,7 @@ const path = require('path')
 const views = require('koa-views');
 var router = require('koa-router')();
 const fs = require('fs');
+var watch = require('node-watch');
 // var echart = require('echarts');
 app.use(views(path.join(__dirname, './views'), {
     extension: 'ejs'
@@ -80,6 +81,7 @@ var refresh = function () {
             }
             console.log("Visit http://localhost:3000")
             console.log("Refresh!");
+            openexplore();
         })
     });
 }
@@ -100,24 +102,26 @@ var openexplore = function () {
     console.log("Opening" + cmd);
 }
 var timer = null;
-fs.watch('D:\\work\\sim\\ACMSIMC_TUT\\build\\algorithm.dat', function (curr, prev) {
+watch('D:\\work\\sim\\ACMSIMC_TUT\\build\\input.dat', function (curr, prev) {
     if (Date.parse(prev.ctime) == 0) {
         console.log("文件被创建");
     } else if (Date.parse(curr.ctime) == 0) {
         console.log("文件被删除");
     } else if (Date.parse(curr.mtime) != Date.parse(prev.mtime)) {
         console.log("文件被修改");
-        if (timer === null) {
+        refresh();
+        // openexplore();
+        /*         if (timer === null) {
             timer = setTimeout(function () {
                 refresh();
                 openexplore();
                 timer = null;
             }, 5000);
-        }
+        }*/
     }
 });
 
 if (xAxis.length == 0) {
     refresh();
-    openexplore();
+    // openexplore();
 }
