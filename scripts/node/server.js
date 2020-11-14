@@ -11,9 +11,10 @@ app.use(views(path.join(__dirname, './views'), {
 app.use(require('koa-static')(path.join(__dirname, './views')));
 app.use(router.routes()).use(router.allowedMethods());
 app.listen(3000);
-var f = length => Array.from({
+var f = (length,
+        m) => Array.from({
     length
-}).map((v, k) => k * 1);
+}).map((v, k) => k * m);
 
 var series = [];
 var xAxis = [];
@@ -69,7 +70,7 @@ var refresh = function () {
             series = [];
             names = [];
             names = table[0];
-            xAxis = f(length / step);
+            xAxis = f(length / step, step);
             for (j = 0; j < names.length; j++) {
                 var row = [];
                 for (var i = 1; i <= length / step; i += 1) {
