@@ -37,6 +37,7 @@ void dbginit(void)
     dbglog("smo-iq", 0);
     dbglog("smo-id", 0);
     dbglog("smo-iqref", 0);
+    dbglog("smo-idref", 0);
     dbglog("smo-ualpha", 0);
     dbglog("smo-ubeta", 0);
     dbglog("smo-ud", 0);

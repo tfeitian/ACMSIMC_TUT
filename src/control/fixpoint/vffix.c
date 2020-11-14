@@ -91,6 +91,7 @@ static u16 transfertime = 0;
 void ufinit(void)
 {
     wsetold = 0;
+    u32DcRunTime = 0;
 }
 
 s32 ufcontrol(double speed_cmd, double speed_cmd_dot)

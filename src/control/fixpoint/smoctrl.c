@@ -83,8 +83,8 @@ void fixsmo_transfer(void)
     SpeedRegulate.inputs.Fdb = smo1.swOmegfiltered; //
     SpeedRegulate.Ui = IqRegulate.inputs.Fdb;
     SpeedRegulate.SatErr = 0;
-    // PidReg_Calculate(&SpeedRegulate);
-    // IqRegulate.inputs.Ref = SpeedRegulate.outputs.Out;
+    PidReg_Calculate(&SpeedRegulate);
+    IqRegulate.inputs.Ref = SpeedRegulate.outputs.Out;
     IqRegulate.SatErr = 0;
     IqRegulate.Ui = uq / 400 * 32768;
     IqRegulate.Ui = suq;
