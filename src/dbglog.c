@@ -26,8 +26,9 @@ static void saveheader(FILE *pf)
 void dbginit(void)
 {
     dbglog("uffix-vout", 0);
-
     dbglog("uffix-wset", 0);
+    dbglog("uffix-theta", 0);
+
     dbglog("smoIalpha", 0);
     dbglog("smoIbeta", 0);
     dbglog("smo-udin", 0);
@@ -46,6 +47,18 @@ void dbginit(void)
     dbglog("IbetaError", 0);
     dbglog("EalphaFiltered", 0);
     dbglog("EbetaFiltered", 0);
+
+    dbglog("uffix-phi", 0);
+    dbglog("uffix-p", 0);
+    dbglog("uffix-q", 0);
+    dbglog("uffix-dv", 0);
+    dbglog("uffix-dw", 0);
+    dbglog("uffix-hfp", 0);
+    dbglog("uffix-wref", 0);
+    dbglog("uffix-vcomp", 0);
+
+    dbglog("calud", 0);
+    dbglog("caluq", 0);
 }
 
 void dbgsave(FILE *pf)

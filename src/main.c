@@ -68,6 +68,7 @@ int main(int argc, char *argv[])
     int dfe = 0; // dfe for down frequency execution
     float fref;
     dbginit();
+    ufinit();
     E_RUN_STATE eState = E_RUN_UF;
     E_MOTOR_STATE eMotorState = E_MOTOR_STOP;
     bool bSimOver = false;
@@ -83,7 +84,7 @@ int main(int argc, char *argv[])
 
         if (sim_step > 370000)
         {
-            rpm_cmd = 0;
+            // rpm_cmd = 0;
         }
         else if (sim_step > 205000)
         {
@@ -92,7 +93,7 @@ int main(int argc, char *argv[])
         else if (sim_step > 170000)
         {
             // ACM.Tload = 0;
-            rpm_cmd = 0;
+            // rpm_cmd = 0;
         }
         else if (sim_step > 70000)
         {
@@ -101,6 +102,16 @@ int main(int argc, char *argv[])
         else if (sim_step > 5000)
         {
             rpm_cmd = param[E_SPEED_REF];
+        }
+
+        if (ACM.omg > 10)
+        {
+            ACM.Tload = param[E_LOAD_REF];
+
+            float nrpm = ACM.omg * 60 / 2 / M_PI;
+            const float K_power_n = 2.24E-07;
+
+            // ACM.Tload = MIN(nrpm * nrpm * nrpm * K_power_n * 9.5 / nrpm, param[E_LOAD_REF]);
         }
 #if 0
         /* Command and Load Torque */
@@ -245,6 +256,7 @@ int main(int argc, char *argv[])
                             CTRL.pi_iTs.i_state = CTRL.iTs;
                             // eState = E_RUN_FP_SMO;
                         }
+                        caludq();
                         switchtime = 0;
                         break;
 
@@ -258,6 +270,7 @@ int main(int argc, char *argv[])
                             smoruncnts = 0;
                             fixsmo_transfer();
                         }
+                        caludq();
                         break;
 
                     case E_RUN_FIX_SMO:
@@ -267,6 +280,7 @@ int main(int argc, char *argv[])
                         {
                             // bSimOver = true;
                         }
+                        caludq();
                         break;
 
                     case E_RUN_FP_SMO:

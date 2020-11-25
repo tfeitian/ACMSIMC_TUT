@@ -24,7 +24,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/main.exe",
-            "args": ["300", "0", "0", "10", "10", "400000"],
+            "args": ["300", "0", "0", "10", "10", "40000"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

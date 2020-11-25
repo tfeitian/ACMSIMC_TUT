@@ -33,7 +33,7 @@ float HighPassFilter_RC_1order(float *Vi, float *Vi_p, float *Vo_p, float sample
     float CutFrq, RC, Coff;
 
     //high pass filter @cutoff frequency = 0.5 Hz
-    CutFrq = 0.5;
+    CutFrq = 1.5;
     RC = (float)1.0 / 2.0 / M_PI / CutFrq;
     Coff = RC / (RC + 1 / sampleFrq);
     Vo = ((*Vi) - (*Vi_p) + (*Vo_p)) * Coff;

@@ -15,6 +15,7 @@ static float power_p, dw_p;
 u16 theta;
 static int vc_count = 0;
 s16 wset = 0;
+struct PI_Reg pi_Phi;
 
 void vffix_control(double speed_cmd, double speed_cmd_dot)
 {
@@ -70,7 +71,7 @@ void vffix_control(double speed_cmd, double speed_cmd_dot)
 
 float fke = 0.405;
 
-#define RAMP_STEP 1024 / 5
+#define RAMP_STEP (1024 / 5)
 
 u16 u16RampStep = 0;
 
@@ -78,7 +79,7 @@ s16 wref = 0;
 
 s32 wsetold = 0;
 
-#define DC_BRAKE_TIME 0.5 * 16000
+#define DC_BRAKE_TIME 0.0 * 16000
 
 u32 u32DcRunTime = 0;
 
@@ -88,15 +89,175 @@ bool bsmoInit = false;
 
 static u16 transfertime = 0;
 
+float ftheta = 0;
+
 void ufinit(void)
 {
     wsetold = 0;
     u32DcRunTime = 0;
+
+    pi_Phi.Kp = 0.5;
+    //0.5;
+    pi_Phi.Ti = 0.02;
+    //ACM.Lq / ACM.R;
+    pi_Phi.Ki = pi_Phi.Kp / pi_Phi.Ti;
+    pi_Phi.i_state = 0;
+    pi_Phi.i_limit = 10000;
+}
+
+void uf_control(double speedref, double noused)
+{
+    float wref = RPM_2_RAD_PER_SEC(speedref);
+    float v1ref = ACM.KE * wref;
+    float v0 = 30;
+    float dv = 0;
+
+    float ua, ub, ia, ib;
+    float K = 10;
+    ua = CTRL.ual;
+    ub = CTRL.ube;
+
+    ia = ACM.ial;
+    ib = ACM.ibe;
+
+    float p = 3 / 2 * (ua * ia + ub * ib);
+    float q = 3 / 2 * (ub * ia - ua * ib);
+    float hfp = HighPassFilter_RC_1order(&p, &power_p, &dw_p, 16000);
+
+    float dw = 0;
+
+    if (wref != 0)
+    {
+        dw = K / wref * hfp;
+    }
+    dw = 0;
+    float wv = wref - dw;
+
+    if (wv < 0)
+    {
+        wv = 0;
+    }
+
+    ftheta += wv * TS;
+    float vref = v1ref + v0 + dv;
+
+    CTRL.ual = vref * cos(ftheta);
+    CTRL.ube = vref * sin(ftheta);
+
+    // dbglog("uffix-phi", phi);
+    dbglog("uffix-p", p);
+    dbglog("uffix-q", q);
+    dbglog("uffix-dv", dv);
+    dbglog("uffix-hfp", hfp);
+    dbglog("uffix-dw", dw);
+    dbglog("uffix-vout", vref);
+    dbglog("uffix-wset", wv);
+    dbglog("uffix-theta", (float)ftheta);
+}
+
+s32 ufcontrol0(double speed_cmd, double speed_cmd_dot)
+{
+    s16 dw = 0;
+    s32 vout, vcomp, wset = 0;
+    s32 wref0 = FP_SPEED2RAD(speed_cmd); //speed_cmd;
+
+    u32DcRunTime++;
+
+    /*     s16 vcomp = 4096 / (VDC_DIV_COFF * 3.3) * 10.0 * wref / FP_SPEED(200.0);
+    if (vcomp > FP_VOLTAGE(10.0))
+    {
+        vcomp = FP_VOLTAGE(10.0);
+    }
+    s32 wset = wref + FP_SPEED(dw);
+    s32 vout = FP_VOLTAGE((float)wset * Fre_MAX * fke / 32768) + vcomp;
+    theta += FP_THETA((float)wset * Fre_MAX / 32768 / PWM_FREQUENCY); */
+
+    if (u32DcRunTime < DC_BRAKE_TIME)
+    {
+        vout = 100;
+        theta = 0;
+    }
+    else if (u32DcRunTime == DC_BRAKE_TIME)
+    {
+        // theta = DEGREE45;
+    }
+    else
+    {
+        if (wref < 3000)
+        {
+            u16RampStep = RAMP_STEP >> 1;
+        }
+        else
+        {
+            u16RampStep = RAMP_STEP;
+        }
+        if (wsetold < ((s32)wref0 << 10))
+        {
+            wsetold += RAMP_STEP;
+            wref = (wsetold >> 10);
+        }
+        else if (wsetold > ((s32)wref0 << 10))
+        {
+            wsetold -= RAMP_STEP;
+            wref = (wsetold >> 10);
+        }
+        dbglog("uffix-wset", wref);
+
+        vcomp = (s16)((s64)wref * 1862 >> 16);
+        /*\     if (vcomp > FP_VOLTAGE(10.0))
+    {
+        vcomp = FP_VOLTAGE(10.0);
+    } */
+        if (vcomp > 78 * 2)
+        {
+            vcomp = 78 * 2;
+        }
+        else if (vcomp < 100)
+        {
+            vcomp = 100;
+        }
+
+        // vcomp = 65;
+
+        wset = wref;
+        //+FP_SPEED(dw);
+        // s32 vout = FP_VOLTAGE((float)wset * Fre_MAX * fke / 32768) + vcomp;
+        vout = (s32)((s64)wset * 1257 >> 16) + vcomp;
+
+        // vout = (s32)(((s64)vout << 2) / 5);
+        // theta += FP_THETA((float)wset * Fre_MAX / 32768 / PWM_FREQUENCY);
+        theta += (u16)((s32)wset * 261 >> 16);
+    }
+    CTRL.ual = MIN(FLOAT_V(vout * Math_Cos(theta) >> 15), 400);
+    CTRL.ube = MIN(FLOAT_V(vout * Math_Sin(theta) >> 15), 400);
 }
 
 s32 ufcontrol(double speed_cmd, double speed_cmd_dot)
 {
+    float ua, ub, ia, ib;
+    float K = 20;
+    ua = CTRL.ual;
+    ub = CTRL.ube;
+
+    ia = ACM.ial;
+    ib = ACM.ibe;
+
+    float p = 3 / 2 * (ua * ia + ub * ib);
+    float q = 3 / 2 * (ub * ia - ua * ib);
+    float phi = atan2f(q, p);
     s16 dw = 0;
+
+    if (phi > 0)
+    {
+        ia = 0;
+    }
+    float dphiv = -PI(&pi_Phi, phi);
+
+    dbglog("uffix-phi", phi);
+    dbglog("uffix-p", p);
+    dbglog("uffix-q", q);
+    dbglog("uffix-dv", dphiv);
+
     s32 wref0 = FP_SPEED2RAD(speed_cmd); //speed_cmd;
     s32 vout, vcomp, wset = 0;
     if (speed_cmd <= 0.1)
@@ -114,7 +275,7 @@ s32 ufcontrol(double speed_cmd, double speed_cmd_dot)
     {
         if (wref < 5000)
         {
-            u16RampStep = (RAMP_STEP >>1);
+            u16RampStep = (RAMP_STEP >> 1);
         }
         else
         {
@@ -143,11 +304,44 @@ s32 ufcontrol(double speed_cmd, double speed_cmd_dot)
         else if (vcomp < 100)
         {
             vcomp = 100;
+            //40 + 20 + 20 + 20;
+            //100 / 2 / 2;
         }
 
-        wset = wref + FP_RAD(dw);
+        dbglog("uffix-vcomp", vcomp);
+
+        float HFP = HighPassFilter_RC_1order(&p, &power_p, &dw_p, 16000);
+
+        if (wref != 0)
+        {
+            dw = (s16)(-K / ((float)wref) * HFP);
+        }
+        dw = 0;
+        dbglog("uffix-hfp", HFP);
+        dbglog("uffix-dw", dw);
+
+        wset = wref + (dw);
+
+        if (wset < 1000)
+        {
+            // dphiv += 0.3 * p;
+            vcomp = 100;
+        }
+        else
+        {
+            vcomp = 80;
+        }
+        // dphiv = 0;
+        // dphiv = 0;
+        // vcomp = (s32)(dphiv / 400 * 32768);
         // s32 vout = FP_VOLTAGE((float)wset * Fre_MAX * fke / 32768) + vcomp;
-        vout = (s32)((s64)wset * 1257 >> 16) + vcomp;
+        if (dphiv < -vcomp)
+        {
+            dphiv = -vcomp;
+        }
+        dphiv = 0;
+
+        vout = (s32)((s64)wset * 1257 >> 16) + dphiv + vcomp;
 
         // vout = (s32)(((s64)vout << 2) / 5);
         // theta += FP_THETA((float)wset * Fre_MAX / 32768 / PWM_FREQUENCY);
@@ -159,11 +353,11 @@ s32 ufcontrol(double speed_cmd, double speed_cmd_dot)
 
     // if (wref <= FP_SPEED2RAD(250))
     {
-        CTRL.ual = FLOAT_V(vout * Math_Cos(theta) >> 15);
-        CTRL.ube = FLOAT_V(vout * Math_Sin(theta) >> 15);
+        CTRL.ual = MIN(FLOAT_V(vout * Math_Cos(theta) >> 15), 400);
+        CTRL.ube = MIN(FLOAT_V(vout * Math_Sin(theta) >> 15), 400);
         bsmoInit = false;
     }
-                /*     else
+    /*     else
     {
         transfertime++;
         if (transfertime < 200)
@@ -199,7 +393,9 @@ s32 ufcontrol(double speed_cmd, double speed_cmd_dot)
 
     dbglog("uffix-vout", vout);
 
-    dbglog("uffix-wset", FLOAT_RAD(wset));
+    dbglog("uffix-wset", wset);
+
+    dbglog("uffix-theta", (float)theta / DEGREE180 * M_PI);
     // dbg_tst(25, wref);
     dbg_tst(15, theta);
     dbg_tst(14, FP_THETA(ACM.theta_d));

@@ -31,6 +31,8 @@
       var xAxiso = datas.split(",");
       var series = data2.split(",");
 
+      delete data2;
+
       function arrTrans(num, arr, dcnts) {
         const newArr = [];
         //num = 1995;
@@ -129,28 +131,36 @@
       }
 
       charts = [];
-      charts.push(showone(["ACM.id","ACM.iq"]))
-      charts.push(showone(["smo-id","smo-iq"]))
-      charts.push(showone(["smo-idref","smo-iqref"]))
-      charts.push(showone(["RunState"]))
-      charts.push(showone(["smo-ualpha","smo-ubeta"]))
-      charts.push(showone(["smo-ud","smo-uq"]))
-      charts.push(showone(["smo-udin","smo-uqin"]))
-      charts.push(showone(["ACM.ud","ACM.uq"]))
-      charts.push(showone(["CTRL.ud","CTRL.uq"]))
-      charts.push(showone(["ACM.ial","ACM.ibe"]))
-      charts.push(showone(["smoIalpha","smoIbeta"]))
-      charts.push(showone(["IalphaError","IbetaError"]))
-      charts.push(showone(["EalphaFiltered","EbetaFiltered"]))
-      charts.push(showone(["ACM.Ea","ACM.Eb"]))
-      charts.push(showone(["ACM.ia","ACM.ib","ACM.ic"]))
-      charts.push(showone(["ACM.omg"]))
-      charts.push(showone(["smofix"]))
-      charts.push(showone(["fref"]))
-      charts.push(showone(["ACM.theta_d", "uwRotorAngleGlob"]))
+      charts.push(showone(["ACM.ud","ACM.uq","smo-ud","smo-uq","CTRL.ud","CTRL.uq","calud","caluq"]))
+      charts.push(showone(["ACM.id","ACM.iq","smo-idref","smo-iqref","smo-id","smo-iq"]))
       charts.push(showone(["ACM.phid","ACM.phiq"]))
       charts.push(showone(["ACM.Tload","ACM.Tem"]))
+      charts.push(showone(["ACM.ial","ACM.ibe"]))
+      charts.push(showone(["ACM.omg"]))
+      charts.push(showone(["fref"]))
+
+      charts.push(showone(["ACM.theta_d", "uwRotorAngleGlob","uffix-theta"]))
+      charts.push(showone(["uffix-phi"]))
+      charts.push(showone(["uffix-dv","uffix-vcomp"]))
+      charts.push(showone(["uffix-dw"]))
+      charts.push(showone(["uffix-p","uffix-q","uffix-hfp"]))
       charts.push(showone(["uffix-vout","uffix-wset"]))
+
+      charts.push(showone(["smo-idref","smo-iqref"]))
+      charts.push(showone(["smo-id","smo-iq"]))
+      charts.push(showone(["smo-ualpha","smo-ubeta"]))
+      charts.push(showone(["smo-ud","smo-uq","calud","caluq"]))
+      charts.push(showone(["smo-udin","smo-uqin"]))
+      charts.push(showone(["smoIalpha","smoIbeta"]))
+
+      charts.push(showone(["CTRL.ud","CTRL.uq"]))
+      charts.push(showone(["IalphaError","IbetaError"]))
+      charts.push(showone(["EalphaFiltered","EbetaFiltered"]))
+      charts.push(showone(["smofix"]))
+      charts.push(showone(["RunState"]))
+
+      charts.push(showone(["ACM.Ea","ACM.Eb"]))
+      charts.push(showone(["ACM.ia","ACM.ib","ACM.ic"]))
 
 
       //charts.push(showone([28,15]))
