@@ -43,6 +43,8 @@ void dbginit(void)
     dbglog("smo-ubeta", 0);
     dbglog("smo-ud", 0);
     dbglog("smo-uq", 0);
+    dbglog("smo-Omeg", 0);
+
     dbglog("IalphaError", 0);
     dbglog("IbetaError", 0);
     dbglog("EalphaFiltered", 0);

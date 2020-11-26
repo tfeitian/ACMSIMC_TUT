@@ -401,5 +401,5 @@ s32 ufcontrol(double speed_cmd, double speed_cmd_dot)
     dbg_tst(14, FP_THETA(ACM.theta_d));
     dbg_tst(21, vcomp);
 
-    return bsmoInit;
+    return wset;
 }

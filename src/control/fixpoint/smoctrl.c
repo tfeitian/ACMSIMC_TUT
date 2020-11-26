@@ -8,6 +8,7 @@
 #include "dbglog.h"
 #include "controller.h"
 #include "motor.h"
+#include "ramp.h"
 
 #define OBSERVER_OUTPUT_ANGLE (AngleObserver.outputs.uwEstTheta + 16384 / 2)
 
@@ -43,11 +44,10 @@ void fixsmo_init(void)
 
     /*Speed colsed loop  */
     SpeedRegulate.inputs.Ref = MAX_SPEED_FRQ;
-    SpeedRegulate.inputs.Kp = 512 / 8;
-    // / 2 / 2 / 2;
+    SpeedRegulate.inputs.Kp = 512;
     SpeedRegulate.inputs.Ki = 300;
     SpeedRegulate.inputs.Kc = 32768 / 4;
-    SpeedRegulate.OutMax = 3200; // / 4;
+    SpeedRegulate.OutMax = 4200; // / 4;
     //ClosedLoopCommand.outputs.uwIqCommand;
     SpeedRegulate.OutMin = 0;
 
@@ -91,8 +91,8 @@ void fixsmo_transfer(void)
 
     printf("%g     %g\n", ud, uq);
 
-    PidReg_Intialize(&IdRegulate);
-    PidReg_Intialize(&IqRegulate);
+    // PidReg_Intialize(&IdRegulate);
+    // PidReg_Intialize(&IqRegulate);
 
     s16 sud, suq;
     Park_Calc(sv1.Ualpha, sv1.Ubeta, &sud, &suq, &VDQ);
@@ -101,19 +101,17 @@ void fixsmo_transfer(void)
     SpeedRegulate.Ui = IqRegulate.inputs.Fdb;
     SpeedRegulate.SatErr = 0;
     PidReg_Calculate(&SpeedRegulate);
-    IqRegulate.inputs.Ref = IqRegulate.inputs.Fdb;
+    IqRegulate.inputs.Ref = SpeedRegulate.outputs.Out;
     IqRegulate.SatErr = 0;
-    IqRegulate.Ui = uq / 400 * 32768;
     IqRegulate.Ui = suq;
-    //VDQ.inputs.slQs;
 
     IdRegulate.SatErr = 0;
-    IdRegulate.Ui = ud / 400 * 32768;
     IdRegulate.Ui = sud;
-    //VDQ.inputs.slDs;
     IdRegulate.inputs.Ref = IdRegulate.inputs.Fdb;
 
     smo1.swKslide = 9500;
+
+    ramp_set(smo1.swOmegfiltered / 26.0f);
 }
 u16 u16Cnts = 0;
 
@@ -121,7 +119,7 @@ void fixsmo_control(s16 swIa, s16 swIb, s16 swVdcFiltered, bool bOutput)
 {
     u16Cnts++;
 
-    if (IdRegulate.inputs.Kp < 2048 * 2)
+    if (IdRegulate.inputs.Kp < 2048)
     {
         IdRegulate.inputs.Kp++;
         IqRegulate.inputs.Kp++;
@@ -131,6 +129,10 @@ void fixsmo_control(s16 swIa, s16 swIb, s16 swVdcFiltered, bool bOutput)
         if ((u16Cnts & 0x0f) == 0)
         {
             IdRegulate.inputs.Ref--;
+            if (SpeedRegulate.OutMax < 10650)
+            {
+                // SpeedRegulate.OutMax++;
+            }
         }
     }
 
@@ -156,6 +158,8 @@ void fixsmo_control(s16 swIa, s16 swIb, s16 swVdcFiltered, bool bOutput)
 
     dbglog("smo-udin", ud);
     dbglog("smo-uqin", uq);
+
+    dbglog("smo-Omeg", smo1.swOmegfiltered / 26.0f);
 
     // sv1.Ualpha = (CTRL.ual);
     // sv1.Ubeta = (CTRL.ube);

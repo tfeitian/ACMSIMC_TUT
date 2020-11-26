@@ -212,7 +212,7 @@ int main(int argc, char *argv[])
                 dbglog("ACM.ib", ib);
                 dbglog("ACM.ic", ic);
 
-                fref = ramp(rpm_cmd, param[E_RAMP_TIME], TS);
+                // fref = ramp(rpm_cmd, param[E_RAMP_TIME], TS);
 
                 static u16 smoruncnts = 0;
                 static u16 switchtime = 0;
@@ -234,20 +234,27 @@ int main(int argc, char *argv[])
                 } */
 
                 //Run speed loop per 1ms
-                if ((sim_step & 0xff) == 0)
+                if ((sim_step % 16) == 0)
                 {
                     fixsmo_speedpid(FP_SPEED2RAD(fref) / 2 / M_PI);
                 }
+
+                if (sim_step % (50 * 16) == 0)
+                {
+                    fref = ramp(rpm_cmd, param[E_RAMP_TIME], 0.05);
+                }
+
+                s32 wuf = 0;
 
                 if (eMotorState == E_MOTOR_RUNNING)
                 {
                     switch (eState)
                     {
                     case E_RUN_UF:
-                        ufcontrol(fref, 0);
+                        wuf = ufcontrol(fref, 0);
                         fixsmo_control(FP_CURRENT(ia), FP_CURRENT(ib), (400), false);
                         // fixsmo_transfer();
-                        if (fref > 250)
+                        if (wuf > 30000)
                         {
                             eState = E_RUN_SWITCHING;
 
@@ -269,6 +276,7 @@ int main(int argc, char *argv[])
                             eState = E_RUN_FIX_SMO;
                             smoruncnts = 0;
                             fixsmo_transfer();
+                            printf("switch -- %d\n", sim_step);
                         }
                         caludq();
                         break;
@@ -280,6 +288,7 @@ int main(int argc, char *argv[])
                         {
                             // bSimOver = true;
                         }
+
                         caludq();
                         break;
 
