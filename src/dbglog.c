@@ -70,6 +70,7 @@ void dbginit(void)
     dbglog("uffix-us0", 0);
 
     dbglog("uffix-isfilted", 0);
+    dbglog("uffix-qfilter", 0);
 }
 
 void dbgsave(FILE *pf)

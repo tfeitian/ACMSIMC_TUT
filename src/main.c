@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
         }
         else if (sim_step > 70000)
         {
-            // ACM.Tload = 0;
+            ACM.Tload = param[E_LOAD_REF] * 2;
             rpm_cmd = param[E_SPEED_REF];
         }
         else if (sim_step > 5000)
@@ -107,12 +107,11 @@ int main(int argc, char *argv[])
 
         if (ACM.omg > 10)
         {
-            ACM.Tload = param[E_LOAD_REF];
 
             float nrpm = ACM.omg * 60 / 2 / M_PI;
             const float K_power_n = 2.24E-07;
 
-            // ACM.Tload = nrpm * nrpm * nrpm * K_power_n * 9.5 / nrpm; //, param[E_LOAD_REF]);
+            ACM.Tload = nrpm * nrpm * nrpm * K_power_n * 9.5 / nrpm; //, param[E_LOAD_REF]);
         }
         dbglog("CTRL.ud", ud);
         dbglog("CTRL.uq", uq);

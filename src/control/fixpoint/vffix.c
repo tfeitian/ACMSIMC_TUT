@@ -91,18 +91,20 @@ static u16 transfertime = 0;
 
 float ftheta = 0;
 
-double istotalold, iscosold;
+double istotalold, iscosold, qlold;
 
 void ufinit(void)
 {
     wsetold = 0;
     u32DcRunTime = 0;
 
-    pi_Phi.Kp = 0.5;
+    pi_Phi.Kp = 0;
+    //0.05;
     //0.5;
     pi_Phi.Ti = 0.02;
     //ACM.Lq / ACM.R;
-    pi_Phi.Ki = pi_Phi.Kp / pi_Phi.Ti;
+    pi_Phi.Ki = 0.00001;
+    //pi_Phi.Kp / pi_Phi.Ti;
     pi_Phi.i_state = 0;
     pi_Phi.i_limit = 10000;
 }
@@ -136,7 +138,7 @@ void uf_control(double speedref, double noused)
     float p = 3 / 2 * (ua * ia + ub * ib);
     float q = 3 / 2 * (ub * ia - ua * ib);
     float hfp = HighPassFilter_RC_1order(&p, &power_p, &dw_p, 16000);
-
+    float phi = atan2f(q, p);
     float dw = 0;
 
     if (wref != 0)
@@ -144,6 +146,8 @@ void uf_control(double speedref, double noused)
         dw = K / wref * hfp;
     }
     // dw = 0;
+
+    //Speed compensation
     float wv = wref - dw;
 
     if (wv < 0)
@@ -170,8 +174,14 @@ void uf_control(double speedref, double noused)
     {
         us += 0;
     }
-    float vref = wv * ACM.KE + 10;
     //v1ref + v0 + dv;
+    //voltage compensation
+    float qfilter = LP_Filter(q, 0.001, &qlold);
+    dv = -PI(&pi_Phi, qfilter);
+
+    // dv = MAX(dv, -9);
+
+    float vref = wv * ACM.KE + 10 + dv;
 
     CTRL.ual = vref * cos(ftheta);
     CTRL.ube = vref * sin(ftheta);
@@ -179,12 +189,14 @@ void uf_control(double speedref, double noused)
     // dbglog("uffix-phi", phi);
     dbglog("uffix-p", p);
     dbglog("uffix-q", q);
+    dbglog("uffix-qfilter", qfilter);
     dbglog("uffix-dv", dv);
     dbglog("uffix-hfp", hfp);
     dbglog("uffix-dw", dw);
     dbglog("uffix-vout", vref);
     dbglog("uffix-wset", wv);
     dbglog("uffix-theta", (float)ftheta);
+    dbglog("uffix-phi", phi);
 }
 
 s32 ufcontrol0(double speed_cmd, double speed_cmd_dot)
