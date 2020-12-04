@@ -71,7 +71,7 @@ void vffix_control(double speed_cmd, double speed_cmd_dot)
 
 float fke = 0.405;
 
-#define RAMP_STEP (1024 / 5)
+#define RAMP_STEP (1024 / 5 * 3)
 
 u16 u16RampStep = 0;
 
@@ -91,6 +91,8 @@ static u16 transfertime = 0;
 
 float ftheta = 0;
 
+double istotalold, iscosold;
+
 void ufinit(void)
 {
     wsetold = 0;
@@ -109,16 +111,27 @@ void uf_control(double speedref, double noused)
 {
     float wref = RPM_2_RAD_PER_SEC(speedref);
     float v1ref = ACM.KE * wref;
-    float v0 = 30;
+    float v0 = 0;
     float dv = 0;
 
     float ua, ub, ia, ib;
-    float K = 10;
+    float K = 20;
     ua = CTRL.ual;
     ub = CTRL.ube;
 
     ia = ACM.ial;
     ib = ACM.ibe;
+
+    float istotal = sqrt(ia * ia + ib * ib);
+    float is_theta = theta_round(atan2(ib, ia));
+    float thetaPhi = theta_round((float)theta / DEGREE180 * M_PI - is_theta);
+
+    float iscosphi = istotal * cos(thetaPhi);
+
+    dbglog("uffix-is", istotal);
+    dbglog("uffix-iscosphi", iscosphi);
+    dbglog("uffix-is_theta", is_theta);
+    dbglog("uffix-thetaPhi", thetaPhi / M_PI * 180);
 
     float p = 3 / 2 * (ua * ia + ub * ib);
     float q = 3 / 2 * (ub * ia - ua * ib);
@@ -130,7 +143,7 @@ void uf_control(double speedref, double noused)
     {
         dw = K / wref * hfp;
     }
-    dw = 0;
+    // dw = 0;
     float wv = wref - dw;
 
     if (wv < 0)
@@ -138,8 +151,27 @@ void uf_control(double speedref, double noused)
         wv = 0;
     }
 
-    ftheta += wv * TS;
-    float vref = v1ref + v0 + dv;
+    ftheta += wv / 16000;
+    ftheta = theta_round(ftheta);
+
+    float isfilted = LP_Filter(istotal, 0.01, &istotalold);
+    dbglog("uffix-isfilted", isfilted);
+    float iscosfilted = LP_Filter(iscosphi, 0.01, &iscosold);
+    float ftemp = wv * ACM.KE * wv * ACM.KE + ACM.R * iscosfilted * ACM.R * iscosfilted - ACM.R * isfilted * ACM.R * isfilted;
+
+    float us = iscosphi * ACM.R;
+    dbglog("uffix-us0", us);
+
+    if (ftemp >= 0)
+    {
+        us += sqrt(ftemp);
+    }
+    else
+    {
+        us += 0;
+    }
+    float vref = wv * ACM.KE + 10;
+    //v1ref + v0 + dv;
 
     CTRL.ual = vref * cos(ftheta);
     CTRL.ube = vref * sin(ftheta);
@@ -241,6 +273,17 @@ s32 ufcontrol(double speed_cmd, double speed_cmd_dot)
 
     ia = ACM.ial;
     ib = ACM.ibe;
+
+    float istotal = sqrt(ia * ia + ib * ib);
+    float is_theta = theta_round(atan2(ib, ia));
+    float thetaPhi = theta_round((float)theta / DEGREE180 * M_PI - is_theta);
+
+    float iscosphi = istotal * cos(thetaPhi);
+
+    dbglog("uffix-is", istotal);
+    dbglog("uffix-iscosphi", iscosphi);
+    dbglog("uffix-is_theta", is_theta);
+    dbglog("uffix-thetaPhi", thetaPhi / M_PI * 180);
 
     float p = 3 / 2 * (ua * ia + ub * ib);
     float q = 3 / 2 * (ub * ia - ua * ib);
@@ -345,8 +388,31 @@ s32 ufcontrol(double speed_cmd, double speed_cmd_dot)
 
         // vout = (s32)(((s64)vout << 2) / 5);
         // theta += FP_THETA((float)wset * Fre_MAX / 32768 / PWM_FREQUENCY);
-        theta += (u16)((s32)wset * 261 >> 16);
+        // theta += (u16)((s32)wset * 261 >> 16);
     }
+
+    float fwref = speed_cmd * ACM.npp / 60 * 2 * M_PI;
+    theta += theta_round(fwref / 16000) / 2 / M_PI * 32768;
+    //((float)wset / 163.689f);
+
+    istotal = LIMIT(istotal, -3, 3);
+    iscosphi = LIMIT(iscosphi, -3, 3);
+
+    float isfilted = LP_Filter(istotal, 0.00001, &istotalold);
+    float iscosfilted = LP_Filter(iscosphi, 0.00001, &iscosold);
+    float ftemp = fwref * ACM.KE * fwref * ACM.KE;
+    //    +ACM.R *iscosfilted *ACM.R *iscosfilted - ACM.R *isfilted *ACM.R *isfilted;
+
+    float us = 0;
+    //iscosphi *ACM.R;
+    dbglog("uffix-us0", us);
+    if (ftemp > 0)
+    {
+        us += sqrt(ftemp);
+    }
+
+    dbglog("uffix-us", us);
+    vout = us / 400.0 / sqrt(3) * 32768;
 
     // theta = 65535;
     u8 u8TState = 0;

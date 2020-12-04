@@ -98,6 +98,7 @@ int main(int argc, char *argv[])
         else if (sim_step > 70000)
         {
             // ACM.Tload = 0;
+            rpm_cmd = param[E_SPEED_REF];
         }
         else if (sim_step > 5000)
         {
@@ -111,39 +112,8 @@ int main(int argc, char *argv[])
             float nrpm = ACM.omg * 60 / 2 / M_PI;
             const float K_power_n = 2.24E-07;
 
-            // ACM.Tload = MIN(nrpm * nrpm * nrpm * K_power_n * 9.5 / nrpm, param[E_LOAD_REF]);
+            // ACM.Tload = nrpm * nrpm * nrpm * K_power_n * 9.5 / nrpm; //, param[E_LOAD_REF]);
         }
-#if 0
-        /* Command and Load Torque */
-        if (timebase > 3.5)
-        {
-            // rpm_cmd = 80;
-            // ACM.Tload = 0;
-        }
-        else if (timebase > 2.7)
-        {
-            // rpm_cmd = 52;
-            ACM.Tload = param[E_LOAD_REF];
-        }
-        else if (timebase > 1.0)
-        {
-            rpm_cmd = param[E_SPEED_REF];
-            // ACM.Tload = param[E_LOAD_REF];
-        }
-        else
-        {
-            double k = 0.01 / 2;
-            //ACM.omg *ACM.omg *k;
-            if (ACM.Tload < 0.5)
-            {
-                // ACM.Tload = 0.5;
-            }
-            else if (ACM.Tload > 10)
-            {
-                ACM.Tload = 10;
-            }
-        }
-#endif
         dbglog("CTRL.ud", ud);
         dbglog("CTRL.uq", uq);
 
@@ -197,12 +167,7 @@ int main(int argc, char *argv[])
             // write_data_to_file(fw);
 
 #if CONTROL_METHOD == VF_CONTROL
-            // if (pre_run(rpm_cmd, 0))
             {
-                // vf_control(ramp(rpm_cmd, param[E_RAMP_TIME], TS), 0);
-                // vffix_control(ramp(rpm_cmd, param[E_RAMP_TIME], TS), 0);
-                // ufcontrol(ramp(rpm_cmd, param[E_RAMP_TIME], TS), 0);
-                // control(ramp(rpm_cmd, param[E_RAMP_TIME], TS), 0);
                 float ia, ib, ic;
                 f2to3(ACM.ial, ACM.ibe, &ia, &ib, &ic);
                 // ic = 0 - ia - ib;
@@ -212,32 +177,10 @@ int main(int argc, char *argv[])
                 dbglog("ACM.ib", ib);
                 dbglog("ACM.ic", ic);
 
-                // fref = ramp(rpm_cmd, param[E_RAMP_TIME], TS);
-
                 static u16 smoruncnts = 0;
                 static u16 switchtime = 0;
-                /*                 if (fref > 250)
-                {
-                    smoruncnts++;
-                    if (smoruncnts >= 2)
-                    {
-                        // break;
-                    }
-                    // fixsmo_speedpid(FP_SPEED2RAD(fref) / 2 / M_PI);
-                    // fixsmo_control(FP_CURRENT(ia), FP_CURRENT(ib), FP_VOLTAGE(400), true);
-                }
-                else
-                {
-                    ufcontrol(fref, 0);
-                    fixsmo_speedpid(FP_SPEED2RAD(250) / 2 / M_PI);
-                    fixsmo_control(FP_CURRENT(ia), FP_CURRENT(ib), FP_VOLTAGE(400), false);
-                } */
 
                 //Run speed loop per 1ms
-                if ((sim_step % 16) == 0)
-                {
-                    fixsmo_speedpid(FP_SPEED2RAD(fref) / 2 / M_PI);
-                }
 
                 if (sim_step % (50 * 16) == 0)
                 {
@@ -245,18 +188,21 @@ int main(int argc, char *argv[])
                 }
 
                 s32 wuf = 0;
-
+                if ((sim_step % 16) == 0)
+                {
+                    fixsmo_speedpid(FP_SPEED2RAD(fref) / 2 / M_PI);
+                }
                 if (eMotorState == E_MOTOR_RUNNING)
                 {
                     switch (eState)
                     {
                     case E_RUN_UF:
-                        wuf = ufcontrol(fref, 0);
+                        wuf = uf_control(fref, 0);
                         fixsmo_control(FP_CURRENT(ia), FP_CURRENT(ib), (400), false);
                         // fixsmo_transfer();
                         if (wuf > 30000)
                         {
-                            eState = E_RUN_SWITCHING;
+                            // eState = E_RUN_SWITCHING;
 
                             CTRL.pi_speed.i_state = 0;
                             CTRL.pi_iMs.i_state = CTRL.iMs;
@@ -268,7 +214,7 @@ int main(int argc, char *argv[])
                         break;
 
                     case E_RUN_SWITCHING:
-                        ufcontrol(fref, 0);
+                        uf_control(fref, 0);
                         fixsmo_control(FP_CURRENT(ia), FP_CURRENT(ib), (400), false);
                         switchtime++;
                         if (switchtime >= 0)
@@ -326,13 +272,6 @@ int main(int argc, char *argv[])
 
     //Move to here for informing server.js to load new sim data
     write_input(argc, argv);
-
-    // socket_vClose();
-    /* Fade out */
-    // system("python ./ACMPlot.py");
-    // getch();
-    // system("pause");
-    // system("exit");
     return 0;
 }
 

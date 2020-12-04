@@ -34,7 +34,7 @@
 
 #define MAX(a, b) ((a > b ? a : b))
 #define MIN(a, b) ((a > b ? b : a))
-#define LIMIT(x, a, b) (MAX(MIN(x, a), b))
+#define LIMIT(x, minlimit, maxlimit) (MAX(MIN(x, maxlimit), minlimit))
 
 typedef uint16_t u16;
 typedef uint32_t u32;

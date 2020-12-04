@@ -19,4 +19,5 @@ double LP_Filter(double fin, double fcoef, double *fold);
 float HighPassFilter_RC_1order(float *Vi, float *Vi_p, float *Vo_p, float sampleFrq);
 
 float f2to3(float ial, float ibe, float *ia, float *ib, float *ic);
+float theta_round(float ftheta);
 #endif // !TOOL_H

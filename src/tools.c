@@ -64,3 +64,17 @@ float f2to3(float ial, float ibe, float *ia, float *ib, float *ic)
     *ib = -1.0 / 2 * ial + sqrt(3) / 2 * ibe;
     *ic = -1.0 / 2 * ial - sqrt(3) / 2 * ibe;
 }
+
+float theta_round(float ftheta)
+{
+    float fret = ftheta;
+    if (fret < 0)
+    {
+        fret = fret + 2 * M_PI;
+    }
+    else if (fret > 2 * M_PI)
+    {
+        fret -= 2 * M_PI;
+    }
+    return fret;
+}

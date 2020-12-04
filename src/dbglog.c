@@ -61,6 +61,15 @@ void dbginit(void)
 
     dbglog("calud", 0);
     dbglog("caluq", 0);
+
+    dbglog("uffix-is", 0);
+    dbglog("uffix-is_theta", 0);
+    dbglog("uffix-thetaPhi", 0);
+    dbglog("uffix-iscosphi", 0);
+    dbglog("uffix-us", 0);
+    dbglog("uffix-us0", 0);
+
+    dbglog("uffix-isfilted", 0);
 }
 
 void dbgsave(FILE *pf)
