@@ -126,7 +126,7 @@ void uf_control(double speedref, double noused)
 
     float istotal = sqrt(ia * ia + ib * ib);
     float is_theta = theta_round(atan2(ib, ia));
-    float thetaPhi = theta_round((float)theta / DEGREE180 * M_PI - is_theta);
+    float thetaPhi = theta_round(ftheta - is_theta);
 
     float iscosphi = istotal * cos(thetaPhi);
 
@@ -163,8 +163,7 @@ void uf_control(double speedref, double noused)
     float iscosfilted = LP_Filter(iscosphi, 0.01, &iscosold);
     float ftemp = wv * ACM.KE * wv * ACM.KE + ACM.R * iscosfilted * ACM.R * iscosfilted - ACM.R * isfilted * ACM.R * isfilted;
 
-    float us = iscosphi * ACM.R;
-    dbglog("uffix-us0", us);
+    float us = iscosfilted * ACM.R;
 
     if (ftemp >= 0)
     {
@@ -174,6 +173,7 @@ void uf_control(double speedref, double noused)
     {
         us += 0;
     }
+    dbglog("uffix-us0", us);
     //v1ref + v0 + dv;
     //voltage compensation
     float qfilter = LP_Filter(q, 0.001, &qlold);
@@ -181,7 +181,8 @@ void uf_control(double speedref, double noused)
 
     // dv = MAX(dv, -9);
 
-    float vref = wv * ACM.KE + 10 + dv;
+    float vref = us + dv;
+    //wv *ACM.KE + 10 + dv;
 
     CTRL.ual = vref * cos(ftheta);
     CTRL.ube = vref * sin(ftheta);
@@ -197,6 +198,7 @@ void uf_control(double speedref, double noused)
     dbglog("uffix-wset", wv);
     dbglog("uffix-theta", (float)ftheta);
     dbglog("uffix-phi", phi);
+    dbglog("uffix-us", vref);
 }
 
 s32 ufcontrol0(double speed_cmd, double speed_cmd_dot)
