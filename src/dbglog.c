@@ -58,6 +58,7 @@ void dbginit(void)
     dbglog("uffix-hfp", 0);
     dbglog("uffix-wref", 0);
     dbglog("uffix-vcomp", 0);
+    dbglog("uffix-ftemp", 0);
 
     dbglog("calud", 0);
     dbglog("caluq", 0);

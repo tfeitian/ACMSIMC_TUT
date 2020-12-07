@@ -91,7 +91,7 @@ static u16 transfertime = 0;
 
 float ftheta = 0;
 
-double istotalold, iscosold, qlold;
+double istotalold, iscosold, qlold, dwold;
 
 void ufinit(void)
 {
@@ -103,7 +103,7 @@ void ufinit(void)
     //0.5;
     pi_Phi.Ti = 0.02;
     //ACM.Lq / ACM.R;
-    pi_Phi.Ki = 0.00001;
+    pi_Phi.Ki = 0.00005;
     //pi_Phi.Kp / pi_Phi.Ti;
     pi_Phi.i_state = 0;
     pi_Phi.i_limit = 10000;
@@ -146,6 +146,7 @@ void uf_control(double speedref, double noused)
         dw = K / wref * hfp;
     }
     // dw = 0;
+    dw = LP_Filter(dw, 0.01, &dwold);
 
     //Speed compensation
     float wv = wref - dw;
@@ -199,6 +200,7 @@ void uf_control(double speedref, double noused)
     dbglog("uffix-theta", (float)ftheta);
     dbglog("uffix-phi", phi);
     dbglog("uffix-us", vref);
+    dbglog("uffix-ftemp", ftemp);
 }
 
 s32 ufcontrol0(double speed_cmd, double speed_cmd_dot)
