@@ -91,7 +91,7 @@ static u16 transfertime = 0;
 
 float ftheta = 0;
 
-double istotalold, iscosold, qlold, dwold;
+double istotalold, iscosold, qlold, dwold, powerold;
 
 void ufinit(void)
 {
@@ -137,7 +137,9 @@ void uf_control(double speedref, double noused)
 
     float p = 3 / 2 * (ua * ia + ub * ib);
     float q = 3 / 2 * (ub * ia - ua * ib);
+    float hfp0 = p - LP_Filter(p, 0.0001, &powerold);
     float hfp = HighPassFilter_RC_1order(&p, &power_p, &dw_p, 16000);
+    hfp = hfp0;
     float phi = atan2f(q, p);
     float dw = 0;
 
@@ -194,6 +196,7 @@ void uf_control(double speedref, double noused)
     dbglog("uffix-qfilter", qfilter);
     dbglog("uffix-dv", dv);
     dbglog("uffix-hfp", hfp);
+    dbglog("uffix-hfp0", hfp0);
     dbglog("uffix-dw", dw);
     dbglog("uffix-vout", vref);
     dbglog("uffix-wset", wv);
