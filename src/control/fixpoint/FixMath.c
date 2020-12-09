@@ -517,6 +517,11 @@ u16 iatan2(s32 lY, s32 lX)
     u16 dwAngle;
     s32 lTemp;
 
+    if (lX == 0 && lY == 0)
+    {
+        return 0;
+    }
+
     if ((lX == 0) || (U32AbsS32(lX) < 256))
     {
         if (lY >= 0)

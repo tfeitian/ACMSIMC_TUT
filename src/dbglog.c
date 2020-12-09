@@ -96,6 +96,9 @@ void dbginit(void)
     dbglog("CTRL.ube", 0);
 
     dbglog("uffix0-qfilter", 0);
+    dbglog("uffix0-q", 0);
+    dbglog("uffix0-dv", 0);
+    dbglog("uffix0-Uout0", 0);
 }
 
 void dbgsave(FILE *pf)

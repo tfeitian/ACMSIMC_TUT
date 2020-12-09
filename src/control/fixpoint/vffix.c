@@ -10,12 +10,14 @@
 #include "ramp.h"
 #include "smo.h"
 #include "dbglog.h"
+#include "PI_Adjuster.h"
 
 static float power_p, dw_p;
 u16 theta;
 static int vc_count = 0;
 s16 wset = 0;
 struct PI_Reg pi_Phi;
+PIDREG_OBJECT QRegulate;
 
 void vffix_control(double speed_cmd, double speed_cmd_dot)
 {
@@ -100,7 +102,9 @@ float fki = 1638.4;
 float fkr = 29.56;
 float fkphi = 1857.33;
 float fkw = 26.08;
+float fkp = 37.84;
 
+s32 s16IsTotalOld, s16IsCosphiOld, s16pOld, s32qlold, s32dwold;
 void ufinit(void)
 {
     wsetold = 0;
@@ -118,8 +122,17 @@ void ufinit(void)
 
     u16Rs = (u16)(ACM.R * fkr);
     u16Ke = (u16)(ACM.KE * fkphi);
+
+    PidReg_Intialize(&QRegulate);
+    QRegulate.inputs.Kp = 0;
+    QRegulate.inputs.Ki = 1;
+
+    s16IsTotalOld = 0;
+    s16IsCosphiOld = 0;
+    s16pOld = 0;
+    s32qlold = 0;
+    s32dwold = 0;
 }
-s32 ufcontrol0(double speedref, double noused);
 
 float uf_control(double speedref, double noused)
 {
@@ -142,10 +155,12 @@ float uf_control(double speedref, double noused)
 
     float iscosphi = istotal * cos(thetaPhi);
 
+    // ufcontrol0(speedref, noused);
+
     dbglog("uffix-is", istotal);
     dbglog("uffix-iscosphi", iscosphi);
     dbglog("uffix-is_theta", is_theta);
-    dbglog("uffix-thetaPhi", thetaPhi / M_PI * 180);
+    dbglog("uffix-thetaPhi", thetaPhi);
 
     float p = 3 / 2 * (ua * ia + ub * ib);
     float q = 3 / 2 * (ub * ia - ua * ib);
@@ -179,6 +194,7 @@ float uf_control(double speedref, double noused)
     float ftemp = wv * ACM.KE * wv * ACM.KE + ACM.R * iscosfilted * ACM.R * iscosfilted - ACM.R * isfilted * ACM.R * isfilted;
 
     float us = iscosfilted * ACM.R;
+    dbglog("uffix-us0", us);
 
     if (ftemp >= 0)
     {
@@ -188,19 +204,17 @@ float uf_control(double speedref, double noused)
     {
         us += 0;
     }
-    dbglog("uffix-us0", us);
     //v1ref + v0 + dv;
     //voltage compensation
     float qfilter = LP_Filter(q, 0.001, &qlold);
     dv = -PI(&pi_Phi, qfilter);
-
     // dv = MAX(dv, -9);
 
     float vref = us + dv;
     //wv *ACM.KE + 10 + dv;
 
-    CTRL.ual = vref * cos(ftheta);
-    CTRL.ube = vref * sin(ftheta);
+    // CTRL.ual = vref * cos(ftheta);
+    // CTRL.ube = vref * sin(ftheta);
 
     // dbglog("uffix-phi", phi);
     dbglog("uffix-p", p);
@@ -217,14 +231,12 @@ float uf_control(double speedref, double noused)
     dbglog("uffix-us", vref);
     dbglog("uffix-ftemp", ftemp);
 
-    ufcontrol0(speedref, noused);
     return wv;
 }
 
-s32 s16IsTotalOld, s16IsCosphiOld, s16pOld, s32qlold;
 s32 ufcontrol0(double speed_cmd, double speed_cmd_dot)
 {
-    s32 K = 757;
+    s32 K = 350;
     float fout = speed_cmd * MOTOR_POLES / 60;
     s16 ia = ACM.ial * fki;
     s16 ib = ACM.ibe * fki;
@@ -243,11 +255,16 @@ s32 ufcontrol0(double speed_cmd, double speed_cmd_dot)
         dw = (s16)((s64)K * hfp / wref);
     }
 
+    dw = s16LP_Filter(dw, 328, &s32dwold);
+
     s16 q = 3 / 2 * (ub * ia - ua * ib) >> 11;
     s16 qfilter = s16LP_Filter(q, 33, &s32qlold);
-    // s16 dv = -PI(&pi_Phi, qfilter);
+    QRegulate.inputs.Ref = 0;
+    QRegulate.inputs.Fdb = qfilter;
+    PidReg_Calculate(&QRegulate);
+    s16 dv = QRegulate.outputs.Out;
 
-    s16 wv = wref; //- dw;
+    s16 wv = wref - dw;
     s16 s16IsTotal = Math_Sqrt(ia * ia + ib * ib);
     u16 is_theta = iatan2(ib, ia);
     // u16 theta0 = (u16)(ftheta * DEGREE180 / M_PI);
@@ -265,7 +282,8 @@ s32 ufcontrol0(double speed_cmd, double speed_cmd_dot)
     s32Temp = s32Temp + s32Temp0 - s32Temp1;
 
     s16 s16Us = (s16IsCosFilted * u16Rs >> 10);
-
+    //   -dv;
+    dbglog("uffix0-Uout0", s16Us / fku);
     if (s32Temp >= 0)
     {
         s16Us += Math_Sqrt(s32Temp);
@@ -276,23 +294,25 @@ s32 ufcontrol0(double speed_cmd, double speed_cmd_dot)
     float ual = (float)(s16Us * Math_Cos(theta) >> 15) / fku;
     float ube = (float)(s16Us * Math_Sin(theta) >> 15) / fku;
 
-    // CTRL.ual = ual;
-    // CTRL.ube = ube;
+    CTRL.ual = ual;
+    CTRL.ube = ube;
 
-    dbglog("uffix0-Uout", s16Us);
-    dbglog("uffix0-wv", wv);
-    dbglog("uffix0-dw", dw);
-    dbglog("uffix0-p", p);
-    dbglog("uffix0-hfp", hfp);
-    dbglog("uffix0-qfilter", qfilter);
+    dbglog("uffix0-Uout", s16Us / fku);
+    dbglog("uffix0-wv", wv / fkw);
+    dbglog("uffix0-dw", dw / fkw);
+    dbglog("uffix0-p", p / fkp);
+    dbglog("uffix0-hfp", hfp / fkp);
+    dbglog("uffix0-q", q / fkp);
+    dbglog("uffix0-qfilter", qfilter / fkp);
+    dbglog("uffix0-dv", dv / fku);
     dbglog("uffix0-theta", theta);
-    dbglog("uffix0-IsTotal", s16IsTotal);
+    dbglog("uffix0-IsTotal", s16IsTotal / fki);
     dbglog("uffix0-is_theta", theta_round((float)is_theta / DEGREE180 * M_PI));
     dbglog("uffix0-thetaphi", theta_round((float)thetaphi / DEGREE180 * M_PI));
     // dbglog("uffix0-is_theta", theta_round(is_theta));
-    dbglog("uffix0-IsCosphi", s16IsCosphi);
-    dbglog("uffix0-IsFilted", s16IsFilted);
-    dbglog("uffix0-IsCosFilted", s16IsCosFilted);
+    dbglog("uffix0-IsCosphi", s16IsCosphi / fki);
+    dbglog("uffix0-IsFilted", s16IsFilted / fki);
+    dbglog("uffix0-IsCosFilted", s16IsCosFilted / fki);
     dbglog("uffix0-s32Temp", s32Temp);
     dbglog("uffix0-s32Temp0", s32Temp0);
     dbglog("uffix0-s32Temp1", s32Temp1);

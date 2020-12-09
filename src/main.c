@@ -195,7 +195,7 @@ int main(int argc, char *argv[])
                     switch (eState)
                     {
                     case E_RUN_UF:
-                        wuf = uf_control(fref, 0);
+                        wuf = ufcontrol0(fref, 0);
                         fixsmo_control(FP_CURRENT(ia), FP_CURRENT(ib), (400), false);
                         // fixsmo_transfer();
                         if (wuf > 30000)
@@ -212,7 +212,7 @@ int main(int argc, char *argv[])
                         break;
 
                     case E_RUN_SWITCHING:
-                        uf_control(fref, 0);
+                        ufcontrol0(fref, 0);
                         fixsmo_control(FP_CURRENT(ia), FP_CURRENT(ib), (400), false);
                         switchtime++;
                         if (switchtime >= 0)
