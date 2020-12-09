@@ -93,6 +93,14 @@ float ftheta = 0;
 
 double istotalold, iscosold, qlold, dwold, powerold;
 
+u16 u16Rs, u16Ke;
+
+float fku = 47.3;
+float fki = 1638.4;
+float fkr = 29.56;
+float fkphi = 1857.33;
+float fkw = 26.08;
+
 void ufinit(void)
 {
     wsetold = 0;
@@ -107,11 +115,15 @@ void ufinit(void)
     //pi_Phi.Kp / pi_Phi.Ti;
     pi_Phi.i_state = 0;
     pi_Phi.i_limit = 10000;
-}
 
-void uf_control(double speedref, double noused)
+    u16Rs = (u16)(ACM.R * fkr);
+    u16Ke = (u16)(ACM.KE * fkphi);
+}
+s32 ufcontrol0(double speedref, double noused);
+
+float uf_control(double speedref, double noused)
 {
-    float wref = RPM_2_RAD_PER_SEC(speedref);
+    float wref = speedref * RPM_2_RAD_PER_SEC(MOTOR_POLES);
     float v1ref = ACM.KE * wref;
     float v0 = 0;
     float dv = 0;
@@ -204,83 +216,88 @@ void uf_control(double speedref, double noused)
     dbglog("uffix-phi", phi);
     dbglog("uffix-us", vref);
     dbglog("uffix-ftemp", ftemp);
+
+    ufcontrol0(speedref, noused);
+    return wv;
 }
 
+s32 s16IsTotalOld, s16IsCosphiOld, s16pOld, s32qlold;
 s32 ufcontrol0(double speed_cmd, double speed_cmd_dot)
 {
+    s32 K = 757;
+    float fout = speed_cmd * MOTOR_POLES / 60;
+    s16 ia = ACM.ial * fki;
+    s16 ib = ACM.ibe * fki;
+
+    s16 ua = CTRL.ual * fku;
+    s16 ub = CTRL.ube * fku;
+
+    s16 p = 3 / 2 * (ua * ia + ub * ib) >> 11;
+    s16 hfp = p - s16LP_Filter(p, 3, &s16pOld);
+
+    s16 wref = (u16)(2 * M_PI * fout * fkw); //speed_cmd;
     s16 dw = 0;
-    s32 vout, vcomp, wset = 0;
-    s32 wref0 = FP_SPEED2RAD(speed_cmd); //speed_cmd;
 
-    u32DcRunTime++;
-
-    /*     s16 vcomp = 4096 / (VDC_DIV_COFF * 3.3) * 10.0 * wref / FP_SPEED(200.0);
-    if (vcomp > FP_VOLTAGE(10.0))
+    if (wref != 0)
     {
-        vcomp = FP_VOLTAGE(10.0);
+        dw = (s16)((s64)K * hfp / wref);
     }
-    s32 wset = wref + FP_SPEED(dw);
-    s32 vout = FP_VOLTAGE((float)wset * Fre_MAX * fke / 32768) + vcomp;
-    theta += FP_THETA((float)wset * Fre_MAX / 32768 / PWM_FREQUENCY); */
 
-    if (u32DcRunTime < DC_BRAKE_TIME)
+    s16 q = 3 / 2 * (ub * ia - ua * ib) >> 11;
+    s16 qfilter = s16LP_Filter(q, 33, &s32qlold);
+    // s16 dv = -PI(&pi_Phi, qfilter);
+
+    s16 wv = wref; //- dw;
+    s16 s16IsTotal = Math_Sqrt(ia * ia + ib * ib);
+    u16 is_theta = iatan2(ib, ia);
+    // u16 theta0 = (u16)(ftheta * DEGREE180 / M_PI);
+    u16 thetaphi = theta - is_theta;
+
+    s16 s16IsCosphi = (s16IsTotal * Math_Cos(thetaphi) >> 15);
+
+    s16 s16IsFilted = s16LP_Filter(s16IsTotal, 328, &s16IsTotalOld);
+    s16 s16IsCosFilted = s16LP_Filter(s16IsCosphi, 328, &s16IsCosphiOld);
+
+    s32 s32Temp = ((s32)wv * u16Ke >> 10) * ((s32)wv * u16Ke >> 10);
+    s32 s32Temp0 = ((s32)u16Rs * s16IsCosFilted >> 10) * ((s32)u16Rs * s16IsCosFilted >> 10);
+    s32 s32Temp1 = ((s32)u16Rs * s16IsFilted >> 10) * ((s32)u16Rs * s16IsFilted >> 10);
+
+    s32Temp = s32Temp + s32Temp0 - s32Temp1;
+
+    s16 s16Us = (s16IsCosFilted * u16Rs >> 10);
+
+    if (s32Temp >= 0)
     {
-        vout = 100;
-        theta = 0;
+        s16Us += Math_Sqrt(s32Temp);
     }
-    else if (u32DcRunTime == DC_BRAKE_TIME)
-    {
-        // theta = DEGREE45;
-    }
-    else
-    {
-        if (wref < 3000)
-        {
-            u16RampStep = RAMP_STEP >> 1;
-        }
-        else
-        {
-            u16RampStep = RAMP_STEP;
-        }
-        if (wsetold < ((s32)wref0 << 10))
-        {
-            wsetold += RAMP_STEP;
-            wref = (wsetold >> 10);
-        }
-        else if (wsetold > ((s32)wref0 << 10))
-        {
-            wsetold -= RAMP_STEP;
-            wref = (wsetold >> 10);
-        }
-        dbglog("uffix-wset", wref);
 
-        vcomp = (s16)((s64)wref * 1862 >> 16);
-        /*\     if (vcomp > FP_VOLTAGE(10.0))
-    {
-        vcomp = FP_VOLTAGE(10.0);
-    } */
-        if (vcomp > 78 * 2)
-        {
-            vcomp = 78 * 2;
-        }
-        else if (vcomp < 100)
-        {
-            vcomp = 100;
-        }
+    theta += wv / 40; //40 = k_th/k_w/k_t
 
-        // vcomp = 65;
+    float ual = (float)(s16Us * Math_Cos(theta) >> 15) / fku;
+    float ube = (float)(s16Us * Math_Sin(theta) >> 15) / fku;
 
-        wset = wref;
-        //+FP_SPEED(dw);
-        // s32 vout = FP_VOLTAGE((float)wset * Fre_MAX * fke / 32768) + vcomp;
-        vout = (s32)((s64)wset * 1257 >> 16) + vcomp;
+    // CTRL.ual = ual;
+    // CTRL.ube = ube;
 
-        // vout = (s32)(((s64)vout << 2) / 5);
-        // theta += FP_THETA((float)wset * Fre_MAX / 32768 / PWM_FREQUENCY);
-        theta += (u16)((s32)wset * 261 >> 16);
-    }
-    CTRL.ual = MIN(FLOAT_V(vout * Math_Cos(theta) >> 15), 400);
-    CTRL.ube = MIN(FLOAT_V(vout * Math_Sin(theta) >> 15), 400);
+    dbglog("uffix0-Uout", s16Us);
+    dbglog("uffix0-wv", wv);
+    dbglog("uffix0-dw", dw);
+    dbglog("uffix0-p", p);
+    dbglog("uffix0-hfp", hfp);
+    dbglog("uffix0-qfilter", qfilter);
+    dbglog("uffix0-theta", theta);
+    dbglog("uffix0-IsTotal", s16IsTotal);
+    dbglog("uffix0-is_theta", theta_round((float)is_theta / DEGREE180 * M_PI));
+    dbglog("uffix0-thetaphi", theta_round((float)thetaphi / DEGREE180 * M_PI));
+    // dbglog("uffix0-is_theta", theta_round(is_theta));
+    dbglog("uffix0-IsCosphi", s16IsCosphi);
+    dbglog("uffix0-IsFilted", s16IsFilted);
+    dbglog("uffix0-IsCosFilted", s16IsCosFilted);
+    dbglog("uffix0-s32Temp", s32Temp);
+    dbglog("uffix0-s32Temp0", s32Temp0);
+    dbglog("uffix0-s32Temp1", s32Temp1);
+    dbglog("uffix0-ual", ual);
+    dbglog("uffix0-ube", ube);
 }
 
 s32 ufcontrol(double speed_cmd, double speed_cmd_dot)

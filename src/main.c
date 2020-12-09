@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
             // ACM.Tload = 0;
             // rpm_cmd = 0;
         }
-        else if (sim_step > 70000)
+        else if (sim_step > 30000)
         {
             ACM.Tload = param[E_LOAD_REF] * 2;
             rpm_cmd = param[E_SPEED_REF];
@@ -107,11 +107,10 @@ int main(int argc, char *argv[])
 
         if (ACM.omg > 10)
         {
-
             float nrpm = ACM.omg * 60 / 2 / M_PI;
             const float K_power_n = 2.24E-07;
 
-            ACM.Tload = nrpm * nrpm * nrpm * K_power_n * 9.5 / nrpm; //, param[E_LOAD_REF]);
+            // ACM.Tload = nrpm * nrpm * nrpm * K_power_n * 9.5 / nrpm; //, param[E_LOAD_REF]);
         }
         dbglog("CTRL.ud", ud);
         dbglog("CTRL.uq", uq);
@@ -253,6 +252,8 @@ int main(int argc, char *argv[])
 #endif
         }
 
+        dbglog("CTRL.ual", CTRL.ual);
+        dbglog("CTRL.ube", CTRL.ube);
         inverter_model(CTRL.ual, CTRL.ube, ACM.theta_d, &ud, &uq);
         // dbglog("ob_theta", ob.theta);
         dbglog("fref", fref);

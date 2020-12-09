@@ -73,6 +73,29 @@ void dbginit(void)
 
     dbglog("uffix-isfilted", 0);
     dbglog("uffix-qfilter", 0);
+
+    dbglog("uffix0-Uout", 0);
+    dbglog("uffix0-IsTotal", 0);
+    dbglog("uffix0-is_theta", 0);
+    dbglog("uffix0-thetaphi", 0);
+    dbglog("uffix0-IsCosphi", 0);
+    dbglog("uffix0-IsFilted", 0);
+    dbglog("uffix0-IsCosFilted", 0);
+    dbglog("uffix0-s32Temp", 0);
+    dbglog("uffix0-s32Temp0", 0);
+    dbglog("uffix0-s32Temp1", 0);
+    dbglog("uffix0-wv", 0);
+    dbglog("uffix0-theta", 0);
+    dbglog("uffix0-p", 0);
+    dbglog("uffix0-hfp", 0);
+    dbglog("uffix0-dw", 0);
+    dbglog("uffix0-ual", 0);
+    dbglog("uffix0-ube", 0);
+
+    dbglog("CTRL.ual", 0);
+    dbglog("CTRL.ube", 0);
+
+    dbglog("uffix0-qfilter", 0);
 }
 
 void dbgsave(FILE *pf)

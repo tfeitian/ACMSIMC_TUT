@@ -3,6 +3,7 @@
 #include "userdefine.h"
 
 void ufinit(void);
+float uf_control(double speedref, double noused);
 void vffix_control(double speed_cmd, double speed_cmd_dot);
 s32 ufcontrol(double speed_cmd, double speed_cmd_dot);
 #endif // ! VF_FIX_H

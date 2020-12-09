@@ -55,6 +55,8 @@ typedef struct
 
 extern const u16 wSin_Table[];
 extern const u16 uwActan_Table[];
+extern const u16 ATAN_TAB1[257];
+extern const u16 ATAN_TAB2[257];
 
 void fp_abtodq(s16 ia, s16 ib, u16 u16theta, s16 *id, s16 *iq);
 void fp_dqtoab(s32 ud, s32 uq, u16 theta, s32 *ua, s32 *ub);
@@ -66,4 +68,8 @@ void ClarkeAndPark_Convert(MATRIX_CONVERT *v);
 void Trig_Functions(Trig_Components *p);
 void InvPark_Calc(IPARK *v);
 void Park_Calc(s16 ua, s16 ub, s16 *pud, s16 *puq, IPARK *v);
+s16 s16LP_Filter(s16 s16Input, s16 s16Coef, s32 *s32OldInput);
+u16 Atan_Functions(s16 x, s16 y);
+int32_t Math_Sqrt(int32_t wInput);
+u16 iatan2(s32 lY, s32 lX);
 #endif

@@ -393,3 +393,163 @@ void InvPark_Calc(IPARK *v)
      v->Beta = _IQmpy(v->Qs,Cosine) + _IQmpy(v->Ds,Sine);
 #endif
 }
+/**
+  * @brief  Low pass filter.
+  * @param  Input s16Coef coef*(2**15)
+  * @retval int16_t Filted value
+  */
+s16 s16LP_Filter(s16 s16Input, s16 s16Coef, s32 *s32OldInput)
+{
+    s32 s32filted = (s32)s16Input * s16Coef + ((s64)(32768 - s16Coef) * (*s32OldInput) >> 15);
+    *s32OldInput = (s32filted);
+    return (s16)(s32filted >> 15);
+}
+/**
+  * @brief  It calculates the square root of a non-negative s32. It returns 0
+  *         for negative s32.
+  * @param  Input int32_t number
+  * @retval int32_t Square root of Input (0 if Input<0)
+  */
+int32_t Math_Sqrt(int32_t wInput)
+{
+    uint8_t biter = 0u;
+    int32_t wtemproot;
+    int32_t wtemprootnew;
+
+    if (wInput > 0)
+    {
+
+        if (wInput <= (int32_t)2097152)
+        {
+            wtemproot = (int32_t)128;
+        }
+        else
+        {
+            wtemproot = (int32_t)8192;
+        }
+
+        do
+        {
+            wtemprootnew = (wtemproot + wInput / wtemproot) / (int32_t)2;
+            if (wtemprootnew == wtemproot)
+            {
+                biter = 6u;
+            }
+            else
+            {
+                biter++;
+                wtemproot = wtemprootnew;
+            }
+        } while (biter < 6u);
+    }
+    else
+    {
+        wtemprootnew = (int32_t)0;
+    }
+
+    return (wtemprootnew);
+}
+
+u32 iatan(s32 arg)
+{
+    u16 arg16;
+    bool sign_arg;
+    u32 tmpU32;
+    u32 atanInt;
+    u8 addr;
+    u16 rest;
+    u16 low_word;
+
+    /* check for negative argument */
+    if (arg < 0)
+    {
+        arg = -arg; // argument has to be positive always
+        sign_arg = TRUE;
+    }
+    else
+    {
+        sign_arg = FALSE;
+    }
+    arg16 = (u16)(arg >> 16);
+    /* Check if the argument is below 8*2^16*/
+    if (arg16 < 8)
+    {
+        low_word = (u16)(arg >> 3);
+        addr = (u8)(low_word >> 8); // take first 8 bits (addr)
+        rest = low_word & 0x00FF;   // take last 8 bits (rest)
+        atanInt = ATAN_TAB1[addr];
+        tmpU32 = rest * (u32)(ATAN_TAB1[addr + 1] - (u16)atanInt);
+        atanInt = ((atanInt << 8) + tmpU32) << 6;
+    }
+    else if (arg16 < 128)
+    {
+        low_word = (u16)(arg >> 7);
+        addr = (u8)(low_word >> 8); // take first 8 bits (addr)
+        rest = low_word & 0x00FF;   // take last 8 bits (rest)
+        atanInt = ATAN_TAB2[addr];
+        tmpU32 = rest * (u32)(ATAN_TAB2[addr + 1] - (u16)atanInt);
+        atanInt = ((atanInt << 8) + tmpU32) << 6;
+    }
+    else
+    {
+        atanInt = 1068391149 + 162 * (u32)arg16;
+    }
+
+    /* subtract from 2*pi, if negative argument */
+    if (sign_arg)
+        atanInt = (u32)((-1) * (s32)atanInt);
+
+    return (atanInt);
+}
+#define S32_MAX ((s32)2147483647)
+#define S32_MIN ((s32)(-2147483647 - 1))
+
+u32 U32AbsS32(s32 i)
+{
+    if (i >= 0)
+        return i;
+    else
+        return -i;
+}
+
+u16 iatan2(s32 lY, s32 lX)
+{
+    u16 dwAngle;
+    s32 lTemp;
+
+    if ((lX == 0) || (U32AbsS32(lX) < 256))
+    {
+        if (lY >= 0)
+        {
+            return 16384; // PI/2
+        }
+        else
+        {
+            return 49152; // -PI/2
+        }
+    }
+    lTemp = lY / (lX >> 8);
+
+    // y = LIMIT(llTemp,S32_MAX,S32_MIN);
+    if (lTemp > (0x7FFFFFFF >> 8))
+    {
+        lY = S32_MAX;
+    }
+    else if (lTemp < (-(0x7FFFFFFF >> 8)))
+    {
+        lY = S32_MIN;
+    }
+    else
+    {
+        lY = (s32)(lTemp << 8);
+    }
+    dwAngle = (u16)(iatan(lY) >> 16);
+    if (lX > 0)
+    {
+        return dwAngle;
+    }
+    else
+    {
+        return dwAngle + 32768; // atan() + PI
+    }
+}
