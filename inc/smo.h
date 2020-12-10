@@ -56,6 +56,7 @@ typedef struct
 
 typedef enum
 {
+    E_PRE_RUNNING,
     E_RUN_UF,
     E_RUN_SWITCHING,
     E_RUN_FIX_SMO,

@@ -72,6 +72,7 @@ int main(int argc, char *argv[])
     E_RUN_STATE eState = E_RUN_UF;
     E_MOTOR_STATE eMotorState = E_MOTOR_STOP;
     bool bSimOver = false;
+    bool bStartRmp = false;
 
     double ud = 0.0, uq = 0.0, rpm_cmd = 0.0;
     for (sim_step = 0; sim_step < param[E_RUN_TIME]; sim_step++)
@@ -95,7 +96,7 @@ int main(int argc, char *argv[])
             // ACM.Tload = 0;
             // rpm_cmd = 0;
         }
-        else if (sim_step > 30000)
+        else if (sim_step > 50000)
         {
             ACM.Tload = param[E_LOAD_REF] * 2;
             rpm_cmd = param[E_SPEED_REF];
@@ -108,9 +109,9 @@ int main(int argc, char *argv[])
         if (ACM.omg > 10)
         {
             float nrpm = ACM.omg * 60 / 2 / M_PI;
-            const float K_power_n = 2.24E-07;
+            const float K_power_n = 2.24E-07 / 7;
 
-            // ACM.Tload = nrpm * nrpm * nrpm * K_power_n * 9.5 / nrpm; //, param[E_LOAD_REF]);
+            ACM.Tload = nrpm * nrpm * nrpm * K_power_n * 9.5 / nrpm; //, param[E_LOAD_REF]);
         }
         dbglog("CTRL.ud", ud);
         dbglog("CTRL.uq", uq);
@@ -133,7 +134,7 @@ int main(int argc, char *argv[])
                 CTRL.ual = 0.0;
                 CTRL.ube = 0;
                 ramp_set(0);
-                eState = E_RUN_UF;
+                eState = E_PRE_RUNNING;
                 ufinit();
             }
             break;
@@ -149,6 +150,11 @@ int main(int argc, char *argv[])
             break;
         }
         motor_log();
+
+        if (sim_step % (50 * 16) == 0 && bStartRmp)
+        {
+            fref = ramp(rpm_cmd, param[E_RAMP_TIME], 0.05);
+        }
 
         if (++dfe == DOWN_FREQ_EXE)
         {
@@ -177,16 +183,12 @@ int main(int argc, char *argv[])
 
                 static u16 smoruncnts = 0;
                 static u16 switchtime = 0;
+                static u16 preruntime = 0;
 
                 //Run speed loop per 1ms
 
-                if (sim_step % (50 * 16) == 0)
-                {
-                    fref = ramp(rpm_cmd, param[E_RAMP_TIME], 0.05);
-                }
-
                 s32 wuf = 0;
-                if ((sim_step % 16) == 0)
+                if ((sim_step % 20) == 0)
                 {
                     fixsmo_speedpid(FP_SPEED2RAD(fref) / 2 / M_PI);
                 }
@@ -194,13 +196,24 @@ int main(int argc, char *argv[])
                 {
                     switch (eState)
                     {
+                    case E_PRE_RUNNING:
+                        preruntime++;
+                        CTRL.ual = 15;
+                        CTRL.ube = 0;
+                        if (preruntime > 1)
+                        {
+                            eState = E_RUN_UF;
+                        }
+                        break;
+
                     case E_RUN_UF:
+                        bStartRmp = true;
                         wuf = ufcontrol0(fref, 0);
                         fixsmo_control(FP_CURRENT(ia), FP_CURRENT(ib), (400), false);
                         // fixsmo_transfer();
-                        if (wuf > 30000)
+                        if (wuf > 4100)
                         {
-                            // eState = E_RUN_SWITCHING;
+                            eState = E_RUN_SWITCHING;
 
                             CTRL.pi_speed.i_state = 0;
                             CTRL.pi_iMs.i_state = CTRL.iMs;

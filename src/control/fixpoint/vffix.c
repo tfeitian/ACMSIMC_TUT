@@ -97,14 +97,14 @@ double istotalold, iscosold, qlold, dwold, powerold;
 
 u16 u16Rs, u16Ke;
 
-float fku = 47.3;
+float fku = 141.89;
 float fki = 1638.4;
-float fkr = 29.56;
-float fkphi = 1857.33;
+float fkr = 88.681;
+float fkphi = 5572;
 float fkw = 26.08;
-float fkp = 37.84;
+float fkp = 113.5;
 
-s32 s16IsTotalOld, s16IsCosphiOld, s16pOld, s32qlold, s32dwold;
+s32 s16IsTotalOld, s16IsCosphiOld, s16pOld, s32qlold, s32dwold, s32Wv;
 void ufinit(void)
 {
     wsetold = 0;
@@ -275,6 +275,7 @@ s32 ufcontrol0(double speed_cmd, double speed_cmd_dot)
     s16 s16IsFilted = s16LP_Filter(s16IsTotal, 328, &s16IsTotalOld);
     s16 s16IsCosFilted = s16LP_Filter(s16IsCosphi, 328, &s16IsCosphiOld);
 
+    // wv = s16LP_Filter(wv, 328, &s32Wv);
     s32 s32Temp = ((s32)wv * u16Ke >> 10) * ((s32)wv * u16Ke >> 10);
     s32 s32Temp0 = ((s32)u16Rs * s16IsCosFilted >> 10) * ((s32)u16Rs * s16IsCosFilted >> 10);
     s32 s32Temp1 = ((s32)u16Rs * s16IsFilted >> 10) * ((s32)u16Rs * s16IsFilted >> 10);
@@ -289,7 +290,13 @@ s32 ufcontrol0(double speed_cmd, double speed_cmd_dot)
         s16Us += Math_Sqrt(s32Temp);
     }
 
-    theta += wv / 40; //40 = k_th/k_w/k_t
+    theta += (s16)((s32)wv * 51 >> 11);
+    /// 40; //40 = k_th/k_w/k_t
+
+    if (s16Us < 100)
+    {
+        // s16Us = 100;
+    }
 
     float ual = (float)(s16Us * Math_Cos(theta) >> 15) / fku;
     float ube = (float)(s16Us * Math_Sin(theta) >> 15) / fku;
@@ -318,6 +325,8 @@ s32 ufcontrol0(double speed_cmd, double speed_cmd_dot)
     dbglog("uffix0-s32Temp1", s32Temp1);
     dbglog("uffix0-ual", ual);
     dbglog("uffix0-ube", ube);
+
+    return wv;
 }
 
 s32 ufcontrol(double speed_cmd, double speed_cmd_dot)

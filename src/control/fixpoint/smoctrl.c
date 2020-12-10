@@ -36,9 +36,11 @@ void fixsmo_init(void)
     // IqRegulate.inputs.Kp /= 8;
 
     /*D axis current */
+    IdRegulate.inputs.Kp = 2048;
     IdRegulate.OutMax = 20000;
     IdRegulate.OutMin = 0 - IdRegulate.OutMax;
     /*Q axis current */
+    IqRegulate.inputs.Kp = 2048;
     IqRegulate.OutMax = 27000;
     IqRegulate.OutMin = 0 - IqRegulate.OutMax;
 
@@ -101,7 +103,7 @@ void fixsmo_transfer(void)
     SpeedRegulate.Ui = IqRegulate.inputs.Fdb;
     SpeedRegulate.SatErr = 0;
     PidReg_Calculate(&SpeedRegulate);
-    IqRegulate.inputs.Ref = SpeedRegulate.outputs.Out;
+    IqRegulate.inputs.Ref = IqRegulate.inputs.Fdb;
     IqRegulate.SatErr = 0;
     IqRegulate.Ui = suq;
 
@@ -111,7 +113,8 @@ void fixsmo_transfer(void)
 
     smo1.swKslide = 9500;
 
-    ramp_set(smo1.swOmegfiltered / 26.0f);
+    // ramp_set(smo1.swOmegfiltered / 26.0f);
+    // IdRegulate.inputs.Kp = IqRegulate.inputs.Kp = 128;
 }
 u16 u16Cnts = 0;
 
@@ -121,8 +124,8 @@ void fixsmo_control(s16 swIa, s16 swIb, s16 swVdcFiltered, bool bOutput)
 
     if (IdRegulate.inputs.Kp < 2048)
     {
-        IdRegulate.inputs.Kp++;
-        IqRegulate.inputs.Kp++;
+        // IdRegulate.inputs.Kp++;
+        // IqRegulate.inputs.Kp++;
     }
     if (IdRegulate.inputs.Ref >= 0)
     {
@@ -131,14 +134,14 @@ void fixsmo_control(s16 swIa, s16 swIb, s16 swVdcFiltered, bool bOutput)
             IdRegulate.inputs.Ref--;
             if (SpeedRegulate.OutMax < 10650)
             {
-                // SpeedRegulate.OutMax++;
+                SpeedRegulate.OutMax++;
             }
         }
     }
 
     if (smo1.swKslide < 12000)
     {
-        smo1.swKslide++;
+        // smo1.swKslide++;
     }
 
     CurrentConvert.inputs.swA = swIa;
@@ -232,4 +235,4 @@ void fixsmo_control(s16 swIa, s16 swIb, s16 swVdcFiltered, bool bOutput)
     Driver1.inputs.uwTb = sv1.Tb;
     Driver1.inputs.uwTc = sv1.Tc;
     PWM_Update(&Driver1); */
-    }
+}
